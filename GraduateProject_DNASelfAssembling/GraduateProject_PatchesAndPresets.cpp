@@ -52,6 +52,16 @@ int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using p
 DNAmol *mol;
 int N; // Total molecules.
 
+char nt[4] = { 'A', 'C', 'G', 'T' };
+int ntSerial(char which_nt){
+	switch (which_nt){
+	case'A':return 0;
+	case'C':return 1;
+	case'G':return 2;
+	case'T':return 3;
+	}
+}
+
 int stageClear(){
 	int i, j, k;
 	for (i = 0; i < _Nx; i++){
@@ -96,6 +106,7 @@ int correctbonding(int n0serial, int n01x, int n01y, int n01z){
 	int ornt1 = 7 - ornt0;
 	int n0ps = -1, n1ps = -1; // patch serial for the right bonding. -1 if not exist.
 	int m;
+	int temp_ntSerial;
 	for (m = 0; m < 4; m++){
 		if (ornt2bpornt[mol[n0serial].ornt][m] == ornt0){
 			n0ps = m; break;
@@ -110,7 +121,12 @@ int correctbonding(int n0serial, int n01x, int n01y, int n01z){
 		mol[n0serial].correctbond[n0ps] = n1serial;
 		mol[n1serial].correctbond[n1ps] = n0serial;
 		// patch assign
-
+		static uniform_int_distribution<> patchDis(0, 3);
+		for (int i = 0; i < 8; i++){
+			temp_ntSerial = patchDis(gen);
+			mol[n0serial].patch[n0ps][i] = nt[temp_ntSerial];
+			mol[n1serial].patch[n1ps][7 - i] = nt[3 - temp_ntSerial];
+		}
 		return 0;
 	}
 	return 1;

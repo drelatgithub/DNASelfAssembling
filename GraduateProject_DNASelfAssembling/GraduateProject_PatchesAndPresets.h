@@ -23,4 +23,7 @@ extern DNAmol *mol;
 extern int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using periodic boundary conditions.
 extern int N; // Total molecules.
 
+extern char nt[4];
+int ntSerial(char which_nt);
+
 int patchPreset();
