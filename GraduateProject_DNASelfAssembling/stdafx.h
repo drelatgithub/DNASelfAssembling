@@ -13,6 +13,7 @@
 // TODO:  在此处引用程序需要的其他头文件
 #include<iostream>
 #include<fstream>
+#include<random>
 
 using namespace std;
 
@@ -20,3 +21,6 @@ using namespace std;
 
 #include"GraduateProject_PositionAndOrientation.h"
 #include"GraduateProject_PatchesAndPresets.h"
+
+
+extern mt19937 gen;

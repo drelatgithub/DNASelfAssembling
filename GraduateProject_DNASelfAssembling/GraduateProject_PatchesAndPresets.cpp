@@ -5,10 +5,7 @@ atom_in_unitcell atom_in_unitcell::set(int nx, int ny, int nz, int nsd, int norn
 	sd = nsd;
 	int mainOrnt = nornt0;
 	int subOrnt = 0, subOrnt_as_pow = 7 - nornt0^nornt1;
-	while (subOrnt_as_pow > 1){
-		subOrnt_as_pow >>= 1;
-		subOrnt++;
-	}
+	for (; subOrnt_as_pow > 1; subOrnt_as_pow >>= 1)subOrnt++;
 	ornt = mainOrnt + 8 * subOrnt;
 	return *this;
 }
@@ -28,8 +25,10 @@ int unitcell_init(){
 DNAmol::DNAmol(){
 	px.x = px.y = px.z = 0;
 	ornt = 0;
-	for (int i = 0; i < 4; i++){
+	int i, j;
+	for (i = 0; i < 4; i++){
 		correctbond[i] = -1;
+		for (j = 0; j < 8; j++)patch[i][j] = 'T';
 	}
 }
 DNAmol DNAmol::put(int nx, int ny, int nz, int nornt){
@@ -41,6 +40,13 @@ DNAmol DNAmol::put(const atom_in_unitcell &a, int x_init, int y_init, int z_init
 	px = a.px + ppos(x_init, y_init, z_init);
 	ornt = a.ornt;
 	return *this;
+}
+int DNAmol::displayPatch()const{
+	for (int i = 0; i < 4; i++){
+		cout.write(patch[i], 8);
+	}
+	cout << endl;
+	return 0;
 }
 int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using periodic boundary conditions.
 DNAmol *mol;
