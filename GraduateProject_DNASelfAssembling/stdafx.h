@@ -14,10 +14,6 @@
 #include<iostream>
 #include<fstream>
 
-
-#include <map>
-#include<random>
-
 using namespace std;
 
 #include<math.h>
