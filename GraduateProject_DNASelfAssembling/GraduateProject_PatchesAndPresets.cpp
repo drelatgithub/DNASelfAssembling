@@ -48,6 +48,13 @@ int DNAmol::displayPatch()const{
 	cout << endl;
 	return 0;
 }
+int DNAmol::displayPatch(ofstream &out)const{
+	for (int i = 0; i < 4; i++){
+		out.write(patch[i], 8);
+	}
+	out << endl;
+	return 0;
+}
 int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using periodic boundary conditions.
 DNAmol *mol;
 int N; // Total molecules.
@@ -146,11 +153,17 @@ int nucleotidePreset(){
 			}
 		}
 	}
+	ofstream out("F:\\DNAPatches.txt");
+	for (m = 0; m < N; m++){
+		mol[m].displayPatch(out);
+	}
+	out.close();
 	return 0;
 }
 int patchPreset(){
 	stageClear();
 	molPreset();
 	nucleotidePreset();
+	stageClear();
 	return 0;
 }
