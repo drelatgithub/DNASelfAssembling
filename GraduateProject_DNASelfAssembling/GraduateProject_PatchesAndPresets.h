@@ -18,7 +18,6 @@ struct DNAmol{
 	DNAmol put(int nx, int ny, int nz, int nornt);
 	DNAmol put(const atom_in_unitcell &a, int x_init, int y_init, int z_init);
 	int displayPatch()const;
-	int displayPatch(ofstream &out)const;
 };
 extern DNAmol *mol;
 extern int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using periodic boundary conditions.

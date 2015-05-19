@@ -30,9 +30,6 @@
     <ClInclude Include="GraduateProject_PatchesAndPresets.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="GraduateProject_Simulation.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -45,9 +42,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="GraduateProject_PatchesAndPresets.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="GraduateProject_Simulation.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
