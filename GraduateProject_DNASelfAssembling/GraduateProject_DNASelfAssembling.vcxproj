@@ -81,6 +81,7 @@
   <ItemGroup>
     <ClInclude Include="GraduateProject_PatchesAndPresets.h" />
     <ClInclude Include="GraduateProject_PositionAndOrientation.h" />
+    <ClInclude Include="GraduateProject_Simulation.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -88,6 +89,7 @@
     <ClCompile Include="GraduateProject_DNASelfAssembling.cpp" />
     <ClCompile Include="GraduateProject_PatchesAndPresets.cpp" />
     <ClCompile Include="GraduateProject_PositionAndOrientation.cpp" />
+    <ClCompile Include="GraduateProject_Simulation.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
