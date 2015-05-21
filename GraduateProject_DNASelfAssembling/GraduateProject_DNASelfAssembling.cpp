@@ -17,11 +17,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	simulationPrepare();
 	simulationProcess();
 
-	for (int i = 0; i < N; i++){
-		cout << i << '\t' << mol[i].px << endl;
-	}
-
-
 	return 0;
 }
 

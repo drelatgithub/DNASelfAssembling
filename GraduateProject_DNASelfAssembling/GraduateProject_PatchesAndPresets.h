@@ -19,6 +19,7 @@ struct DNAmol{
 	DNAmol put(const atom_in_unitcell &a, int x_init, int y_init, int z_init);
 	int displayPatch()const;
 	int displayPatch(ofstream &out)const;
+	int findPatchSerial(int whichOrnt)const; // Find the patch serial in the designated orientation. -1 if not found.
 };
 extern DNAmol *mol;
 extern int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using periodic boundary conditions.
@@ -26,5 +27,9 @@ extern int N; // Total molecules.
 
 extern char nt[4];
 int ntSerial(char which_nt);
+extern int ntSerialPair[4];
+char ntPair(char which_nt);
+extern int couldPatchInteract[4][4];
+extern int isPatchConsequent[4]; // If the nucleotide sequence in a patch is 5'-3', it is consequent.
 
 int patchPreset();

@@ -55,6 +55,14 @@ int DNAmol::displayPatch(ofstream &out)const{
 	out << endl;
 	return 0;
 }
+int DNAmol::findPatchSerial(int whichOrnt)const{ // Find the patch serial in the designated orientation. -1 if not found.
+	for (int m = 0; m < 4; m++){
+		if (ornt2bpornt[ornt][m] == whichOrnt){
+			return m;
+		}
+	}
+	return -1;
+}
 int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using periodic boundary conditions.
 DNAmol *mol;
 int N; // Total molecules.
@@ -68,6 +76,17 @@ int ntSerial(char which_nt){
 	case'T':return 3;
 	}
 }
+int ntSerialPair[4] = { 3, 2, 1, 0 };
+char ntPair(char which_nt){
+	return nt[ntSerialPair[ntSerial(which_nt)]];
+}
+int couldPatchInteract[4][4] = {
+	{ 0, 1, 1, 0 },
+	{ 1, 0, 0, 1 },
+	{ 1, 0, 0, 1 },
+	{ 0, 1, 1, 0 }
+};
+int isPatchConsequent[4] = { 1, 0, 0, 1 };
 
 int stageClear(){
 	int i, j, k;
@@ -112,19 +131,10 @@ int correctbonding(int n0serial, int n01x, int n01y, int n01z){
 	int ornt0 = 4 * (n01x + 1) / 2 + 2 * (n01y + 1) / 2 + (n01z + 1) / 2;
 	int ornt1 = 7 - ornt0;
 	int n0ps = -1, n1ps = -1; // patch serial for the right bonding. -1 if not exist.
-	int m;
 	int temp_ntSerial;
-	for (m = 0; m < 4; m++){
-		if (ornt2bpornt[mol[n0serial].ornt][m] == ornt0){
-			n0ps = m; break;
-		}
-	}
-	for (m = 0; m < 4; m++){
-		if (ornt2bpornt[mol[n1serial].ornt][m] == ornt1){
-			n1ps = m; break;
-		}
-	}
-	if (n0ps >= 0 && n1ps >= 0 && abs(n0ps - n1ps) == 2){
+	n0ps = mol[n0serial].findPatchSerial(ornt0);
+	n1ps = mol[n1serial].findPatchSerial(ornt1);
+	if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps]){
 		mol[n0serial].correctbond[n0ps] = n1serial;
 		mol[n1serial].correctbond[n1ps] = n0serial;
 		// patch assign
