@@ -87,7 +87,7 @@ double energy_local(int s){
 	allowing for single internal mismatches.
 
 	The free energy is determined using the nearest-neighbor parametrization (pH 7),
-	taking into account terminal A-T penalties (not applicable because the DNA brick would not allow for a duplex to end together),
+	taking into account terminal A-T penalties,
 	                    internal mismatches,
 						dangling ends, and
 						temperature and salt concentration dependence,
@@ -113,8 +113,10 @@ double energy_local(int s){
 	E_repulsive = nearests*k_B*100;
 
 	/*
-	For a given number of basepairs in a certain duplex, and a given salt concentration,
-	the free energy corrections by sodium dependence is constant, thus ignored when calculating energy differences.
+	1. For a given number of basepairs in a certain duplex, and a given salt concentration,
+	   the free energy corrections by sodium dependence is constant, thus ignored when calculating energy differences.
+	2. The initiation energy is not applicable because the DNA brick would not allow for a duplex to start together.
+	3. The terminal A-T penalty is not applicable because the DNA brick would not allow for a duplex to end together.
 	*/
 	double E_patches_cal = 0;
 	for (i = -1; i <= 1; i += 2){
