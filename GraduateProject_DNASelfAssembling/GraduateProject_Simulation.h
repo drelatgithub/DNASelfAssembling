@@ -8,3 +8,5 @@
 extern double T;
 int simulationPrepare();
 int simulationProcess();
+
+int maxCorrectSize();
