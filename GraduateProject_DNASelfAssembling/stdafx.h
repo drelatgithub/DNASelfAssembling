@@ -22,6 +22,7 @@ using namespace std;
 #include"GraduateProject_PositionAndOrientation.h"
 #include"GraduateProject_PatchesAndPresets.h"
 #include"GraduateProject_Simulation.h"
+#include"GraduateProject_Data.h"
 
 
 extern mt19937 gen;

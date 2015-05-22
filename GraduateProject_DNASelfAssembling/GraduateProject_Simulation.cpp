@@ -57,13 +57,37 @@ const double delta_H_NN_init = 0.2E3;
 const double delta_S_NN_init = -5.7;
 double T; // Kelvin
 
+double energy_local_patch(int s, int n0ps, int s1, int n1ps){
+	double E_patch_cal = 0;
+	int mismatches = 0, internalMismatches = 0;
+	int m;
+	for (m = 0; m < 8; m++){
+		if (ntPair(mol[s].patch[n0ps][m]) != mol[s1].patch[n1ps][7 - m]){
+			mismatches++;
+			if (m > 0 && m < 7)internalMismatches++;
+		}
+	}
+	switch (mismatches){
+	case 0:
+		E_patch_cal += delta_H_NN_init - T*delta_S_NN_init;
+		for (m = 0; m < 7; m++){
+
+		}
+		break;
+	case 1:
+		if (internalMismatches == 1){
+
+		}
+	}
+	return E_patch_cal;
+}
 double energy_local(int s){
 	/*
 	This energy includes the repulsive energy (100K) and the hybridization free energy for the matched patches,
 	allowing for single internal mismatches.
 
 	The free energy is determined using the nearest-neighbor parametrization (pH 7),
-	taking into account terminal A-T penalties,
+	taking into account terminal A-T penalties (not applicable because the DNA brick would not allow for a duplex to end together),
 	                    internal mismatches,
 						dangling ends, and
 						temperature and salt concentration dependence,
@@ -105,26 +129,7 @@ double energy_local(int s){
 					n0ps = mol[s].findPatchSerial(ornt0);
 					n1ps = mol[s].findPatchSerial(ornt1);
 					if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps]){
-						int mismatches = 0, internalMismatches = 0;
-						int m;
-						for (m = 0; m < 8; m++){
-							if (ntPair(mol[s].patch[n0ps][m]) != mol[s1].patch[n1ps][7 - m]){
-								mismatches++;
-								if (m > 0 && m < 7)internalMismatches++;
-							}
-						}
-						switch (mismatches){
-						case 0:
-							E_patches_cal += delta_H_NN_init - T*delta_S_NN_init;
-							for (m = 0; m < 7; m++){
-
-							}
-							break;
-						case 1:
-							if (internalMismatches == 1){
-
-							}
-						}
+						E_patches_cal += energy_local_patch(s, n0ps, s1, n1ps);
 					}
 				}
 			}
@@ -132,7 +137,6 @@ double energy_local(int s){
 	}
 
 	cout << E_repulsive << endl;
-	
 
 	return 0;
 }

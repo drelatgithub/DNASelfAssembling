@@ -79,6 +79,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GraduateProject_Data.h" />
     <ClInclude Include="GraduateProject_PatchesAndPresets.h" />
     <ClInclude Include="GraduateProject_PositionAndOrientation.h" />
     <ClInclude Include="GraduateProject_Simulation.h" />
@@ -86,6 +87,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GraduateProject_Data.cpp" />
     <ClCompile Include="GraduateProject_DNASelfAssembling.cpp" />
     <ClCompile Include="GraduateProject_PatchesAndPresets.cpp" />
     <ClCompile Include="GraduateProject_PositionAndOrientation.cpp" />
