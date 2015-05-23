@@ -195,7 +195,7 @@ int moveStep(int s){
 int simulationProcess(){
 	int totalSteps = 10000;
 	int step;
-	T = 315;
+	T = 318;
 
 	for (step = 0; step < 200000; step++){
 		if (step % 1000 == 999)cout << step + 1 << '\t' << maxCorrectSize() << endl;
@@ -212,11 +212,8 @@ int anotherMoleculeCombined(int *mark, int previousSerial){
 	mark[previousSerial] = 1;
 	for (int i = 0; i < 4; i++){
 		if (mol[previousSerial].correctbond[i] >= 0 && !mark[mol[previousSerial].correctbond[i]]){
-			// do not derive the difference of ppos because it would render no negative offsets
-			int dx = mol[mol[previousSerial].correctbond[i]].px.x - mol[previousSerial].px.x;
-			int dy = mol[mol[previousSerial].correctbond[i]].px.y - mol[previousSerial].px.y;
-			int dz = mol[mol[previousSerial].correctbond[i]].px.z - mol[previousSerial].px.z;
-			if (abs(dx) == 1 && abs(dy) == 1 && abs(dz) == 1){
+			ppos dpx = mol[mol[previousSerial].correctbond[i]].px - mol[previousSerial].px;
+			if ((dpx.x == 1 || dpx.x == _Nx - 1) && (dpx.y == 1 || dpx.y == _Ny - 1) && (dpx.z == 1 || dpx.z == _Nz - 1)){
 				ok += anotherMoleculeCombined(mark, mol[previousSerial].correctbond[i]);
 			}
 		}
@@ -234,6 +231,7 @@ int maxCorrectSize(){
 	while (p < N){
 		if (!mark[p]){
 			temp = anotherMoleculeCombined(mark, p);
+			cout << temp << '\t';
 			if (max < temp)max = temp;
 		}
 		p++;
