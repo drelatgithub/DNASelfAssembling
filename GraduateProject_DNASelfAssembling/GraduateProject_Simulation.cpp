@@ -52,7 +52,6 @@ int simulationPrepare(){
 		stage[x][y][z] = m;
 		mol[m].put(x, y, z, orntDis(gen));
 	}
-
 	return 0;
 }
 
@@ -116,7 +115,7 @@ double energy_local(int s){
 	2. J. SantaLucia, Jr. and D. Hicks, The Thermodynamics of DNA Structural Motifs, Annu. Rev. Biophys. Biomol. Struct. 33, 415 (2004)
 	*/
 	int i, j, k, nearests;
-	ppos npx;
+	static ppos npx;
 
 	double E_repulsive; // Joules
 	nearests = 0;
@@ -165,6 +164,7 @@ int moveStep(int s){
 	static uniform_int_distribution<> anotherOrnt(0, 22); // only 23 possible orientations in order to exclude the original orientation
 	static uniform_int_distribution<> anotherCoor(-1, 1);
 	static uniform_real_distribution<> judge(0, 1); // Metropolis Criterion
+	static ppos opx, npx;
 	if (translateOrRotate(gen)){
 		int oOrnt = mol[s].ornt;
 		int nOrnt = anotherOrnt(gen);
@@ -176,8 +176,8 @@ int moveStep(int s){
 		}
 	}
 	else{
-		ppos opx = mol[s].px;
-		ppos npx = opx + ppos(anotherCoor(gen), anotherCoor(gen), anotherCoor(gen));
+		opx = mol[s].px;
+		npx = opx + ppos(anotherCoor(gen), anotherCoor(gen), anotherCoor(gen));
 		if (stage[npx.x][npx.y][npx.z] == -1){
 			mol[s].px = npx;
 			stage[opx.x][opx.y][opx.z] = -1;
@@ -193,12 +193,18 @@ int moveStep(int s){
 	return 0;
 }
 int simulationProcess(){
-	int totalSteps = 10000;
-	int step;
-	T = 318;
+	long totalSteps = 10000000;
+	long step;
+	T = 317.5;
 
-	for (step = 0; step < 200000; step++){
-		if (step % 1000 == 999)cout << step + 1 << '\t' << maxCorrectSize() << endl;
+	for (step = 0; step < totalSteps; step++){
+		if (step % 1000 == 999){
+			cout << endl << step + 1 << " steps" << endl << "history max size: " << maxCorrectSize() << endl;
+			t_end = clock();
+			cout << "time used: " << (double)(t_end - t_start) / CLOCKS_PER_SEC << endl;
+			cout << "time per 1000 steps: " << (double)(t_end - t_start) / CLOCKS_PER_SEC / (step + 1) * 1000 << endl;
+			cout << endl;
+		}
 		for (int i = 0; i < N; i++){
 			moveStep(i);
 		}
@@ -223,6 +229,7 @@ int anotherMoleculeCombined(int *mark, int previousSerial){
 int maxCorrectSize(){
 	int *mark = new int[N];
 	int max = 0, temp;
+	static int historyMax = 0;
 	int p;
 	for (p = 0; p < N; p++){
 		mark[p] = 0;
@@ -236,7 +243,8 @@ int maxCorrectSize(){
 		}
 		p++;
 	}
+	if (historyMax < max)historyMax = max;
 
 	delete[]mark;
-	return max;
+	return historyMax;
 }

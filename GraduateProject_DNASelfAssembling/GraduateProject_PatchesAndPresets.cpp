@@ -74,11 +74,18 @@ int ntSerial(char which_nt){
 	case'C':return 1;
 	case'G':return 2;
 	case'T':return 3;
+	default:cout << "Wrong nucleotide!" << endl; return -1;
 	}
 }
 int ntSerialPair[4] = { 3, 2, 1, 0 };
 char ntPair(char which_nt){
-	return nt[ntSerialPair[ntSerial(which_nt)]];
+	switch (which_nt){
+	case'A':return 'T';
+	case'C':return 'G';
+	case'G':return 'C';
+	case'T':return 'A';
+	default:cout << "Wrong nucleotide!" << endl; return 0;
+	}
 }
 int couldPatchInteract[4][4] = {
 	{ 0, 1, 1, 0 },

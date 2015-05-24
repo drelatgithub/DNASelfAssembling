@@ -14,10 +14,10 @@
 #include<iostream>
 #include<fstream>
 #include<random>
+#include<cmath>
+#include<ctime>
 
 using namespace std;
-
-#include<math.h>
 
 #include"GraduateProject_PositionAndOrientation.h"
 #include"GraduateProject_PatchesAndPresets.h"
@@ -26,3 +26,5 @@ using namespace std;
 
 
 extern mt19937 gen;
+extern clock_t t_start;
+extern clock_t t_end;
