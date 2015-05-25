@@ -159,7 +159,7 @@ int nucleotidePreset(){
 			}
 		}
 	}
-	ofstream out("F:\\DNAPatches.txt");
+	ofstream out("DNAPatches.txt");
 	for (m = 0; m < N; m++){
 		mol[m].displayPatch(out);
 	}
