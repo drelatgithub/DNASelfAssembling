@@ -21,3 +21,6 @@ ostream& operator<<(ostream &os, const ppos &px);
 //ornt2bpornt[whichOrnt][bpSerial] gives an integer between 0 - 7
 extern int ornt2bpornt[][4];
 int ornt2bpornt_init();
+//findPatchSerial[whichOrnt][bpOrnt] gives the patch serial 0 - 3, or -1 if not exist
+extern int findPatchSerial[][8];
+int findPatchSerial_init();

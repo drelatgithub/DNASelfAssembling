@@ -63,7 +63,7 @@ double energy_local_patch(int s, int n0ps, int s1, int n1ps){
 	int m;
 	int a, b, c;
 	for (m = 0; m < 8; m++){
-		if (ntPair(mol[s].patch[n0ps][m]) != mol[s1].patch[n1ps][7 - m]){
+		if (ntSerialPair[mol[s].patch[n0ps][m]] != mol[s1].patch[n1ps][7 - m]){
 			mismatches++;
 			if (m > 0 && m < 7)internalMismatches++;
 		}
@@ -73,23 +73,23 @@ double energy_local_patch(int s, int n0ps, int s1, int n1ps){
 	switch (mismatches){
 	case 0:
 		for (m = 0; m < 7; m++){
-			a = ntSerial(mol[s53].patch[ps53][m]);
-			b = ntSerial(mol[s53].patch[ps53][m + 1]);
-			c = ntSerial(mol[s35].patch[ps35][6 - m]);
+			a = mol[s53].patch[ps53][m];
+			b = mol[s53].patch[ps53][m + 1];
+			c = mol[s35].patch[ps35][6 - m];
 			E_patch_kcal += NN_dH_kcal[a][b][c] - T*NN_dS_cal[a][b][c] / 1000;
 		}
 		break;
 	case 1:
 		if (internalMismatches == 1){
 			for (m = 0; m < 7; m++){
-				a = ntSerial(mol[s53].patch[ps53][m]);
-				b = ntSerial(mol[s53].patch[ps53][m + 1]);
-				c = ntSerial(mol[s35].patch[ps35][6 - m]);
+				a = mol[s53].patch[ps53][m];
+				b = mol[s53].patch[ps53][m + 1];
+				c = mol[s35].patch[ps35][6 - m];
 				E_patch_kcal += NN_dH_kcal[a][b][c] - T*NN_dS_cal[a][b][c] / 1000;
-				if (ntPair(b) != c){
-					a = ntSerial(mol[s35].patch[ps35][5 - m]);
-					b = ntSerial(mol[s35].patch[ps35][6 - m]);
-					c = ntSerial(mol[s53].patch[ps53][m + 1]);
+				if (ntSerialPair[b] != c){
+					a = mol[s35].patch[ps35][5 - m];
+					b = mol[s35].patch[ps35][6 - m];
+					c = mol[s53].patch[ps53][m + 1];
 					E_patch_kcal += NN_dH_kcal[a][b][c] - T*NN_dS_cal[a][b][c] / 1000;
 					m++;
 				}
@@ -145,8 +145,8 @@ double energy_local(int s){
 					int ornt0 = 4 * (i + 1) / 2 + 2 * (j + 1) / 2 + (k + 1) / 2;
 					int ornt1 = 7 - ornt0;
 					int n0ps = -1, n1ps = -1; // patch serial for the relative bonding. -1 if not exist.
-					n0ps = mol[s].findPatchSerial(ornt0);
-					n1ps = mol[s1].findPatchSerial(ornt1);
+					n0ps = findPatchSerial[mol[s].ornt][ornt0];
+					n1ps = findPatchSerial[mol[s1].ornt][ornt1];
 					if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps]){
 						E_patches_kcal += energy_local_patch(s, n0ps, s1, n1ps);
 					}
@@ -195,21 +195,59 @@ int moveStep(int s){
 int simulationProcess(){
 	long totalSteps = 10000000;
 	long step;
-	T = 317.5;
+	long step_stat = 5000;
+	T = 310;
 
-	for (step = 0; step < totalSteps; step++){
-		if (step % 1000 == 999){
-			cout << endl << step + 1 << " steps" << endl << "history max size: " << maxCorrectSize() << endl;
-			t_end = clock();
-			cout << "time used: " << (double)(t_end - t_start) / CLOCKS_PER_SEC << endl;
-			cout << "time per 1000 steps: " << (double)(t_end - t_start) / CLOCKS_PER_SEC / (step + 1) * 1000 << endl;
-			cout << endl;
+	for (step = 1; step <= totalSteps; step++){
+		if (step % step_stat == 0){
+			showStats(step, totalSteps, step_stat);
 		}
 		for (int i = 0; i < N; i++){
 			moveStep(i);
 		}
 	}
 
+	return 0;
+}
+
+int timeDisplay(double time_sec){
+	int time_min = (int)(time_sec / 60);
+	time_sec -= time_min * 60;
+	int time_hour = time_min / 60;
+	time_min -= time_hour * 60;
+	int time_day = time_hour / 24;
+	time_hour -= time_day * 24;
+	if (time_day != 0){
+		cout << time_day << "d";
+	}
+	if (time_hour != 0){
+		cout << ' ' << time_hour << "h";
+	}
+	if (time_min != 0){
+		cout << ' ' << time_min << "m";
+	}
+	cout << ' ' << (int)time_sec << "s" << endl;
+	return 0;
+}
+int showStats(int step, int totalSteps, int step_stat){
+	t_end = clock();
+	double time_used = (double)(t_end - t_start) / CLOCKS_PER_SEC;
+	double time_per_step = time_used / step;
+	double time_remaining = time_per_step*(totalSteps - step);
+	int maxSize = maxCorrectSize();
+	static int historyMax = 0;
+	if (historyMax < maxSize)historyMax = maxSize;
+	cout << endl << step << '/' << totalSteps << " steps" << endl;
+	cout << "max size: " << maxSize << endl;
+	cout << "time used: "; timeDisplay(time_used);
+	cout << "time per " << step_stat << " steps: " << time_per_step * step_stat << endl;
+	cout << "estimated remaining time: "; timeDisplay(time_remaining);
+	cout << endl;
+	ofstream coorOut("F:\coordinates.txt");
+	coorOut << T << endl << step << endl << maxSize << endl << historyMax << endl;
+	for (int i = 0; i < N; i++){
+		coorOut << mol[i].px.x << ' ' << mol[i].px.y << ' ' << mol[i].px.z << endl;
+	}
 	return 0;
 }
 
@@ -229,7 +267,6 @@ int anotherMoleculeCombined(int *mark, int previousSerial){
 int maxCorrectSize(){
 	int *mark = new int[N];
 	int max = 0, temp;
-	static int historyMax = 0;
 	int p;
 	for (p = 0; p < N; p++){
 		mark[p] = 0;
@@ -243,8 +280,8 @@ int maxCorrectSize(){
 		}
 		p++;
 	}
-	if (historyMax < max)historyMax = max;
+	cout << endl;
 
 	delete[]mark;
-	return historyMax;
+	return max;
 }

@@ -54,3 +54,14 @@ int ornt2bpornt_init(){
 	}
 	return 0;
 }
+int findPatchSerial[24][8];
+int findPatchSerial_init(){
+	int i, j;
+	for (i = 0; i < 24; i++){
+		for (j = 0; j < 8; j++)findPatchSerial[i][j] = -1;
+	}
+	for (i = 0; i < 24; i++){
+		for (j = 0; j < 4; j++)findPatchSerial[i][ornt2bpornt[i][j]] = j;
+	}
+	return 0;
+}

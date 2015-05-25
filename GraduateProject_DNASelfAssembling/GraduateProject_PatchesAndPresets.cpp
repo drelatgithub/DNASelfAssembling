@@ -28,7 +28,7 @@ DNAmol::DNAmol(){
 	int i, j;
 	for (i = 0; i < 4; i++){
 		correctbond[i] = -1;
-		for (j = 0; j < 8; j++)patch[i][j] = 'T';
+		for (j = 0; j < 8; j++)patch[i][j] = 3; // 'T' as unpaired nucleotides.
 	}
 }
 DNAmol DNAmol::put(int nx, int ny, int nz, int nornt){
@@ -42,26 +42,24 @@ DNAmol DNAmol::put(const atom_in_unitcell &a, int x_init, int y_init, int z_init
 	return *this;
 }
 int DNAmol::displayPatch()const{
-	for (int i = 0; i < 4; i++){
-		cout.write(patch[i], 8);
+	int i, j;
+	for (i = 0; i < 4; i++){
+		for (j = 0; j < 8; j++){
+			cout.put(nt[patch[i][j]]);
+		}
 	}
 	cout << endl;
 	return 0;
 }
 int DNAmol::displayPatch(ofstream &out)const{
-	for (int i = 0; i < 4; i++){
-		out.write(patch[i], 8);
+	int i, j;
+	for (i = 0; i < 4; i++){
+		for (j = 0; j < 8; j++){
+			out.put(nt[patch[i][j]]);
+		}
 	}
 	out << endl;
 	return 0;
-}
-int DNAmol::findPatchSerial(int whichOrnt)const{ // Find the patch serial in the designated orientation. -1 if not found.
-	for (int m = 0; m < 4; m++){
-		if (ornt2bpornt[ornt][m] == whichOrnt){
-			return m;
-		}
-	}
-	return -1;
 }
 int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using periodic boundary conditions.
 DNAmol *mol;
@@ -78,15 +76,6 @@ int ntSerial(char which_nt){
 	}
 }
 int ntSerialPair[4] = { 3, 2, 1, 0 };
-char ntPair(char which_nt){
-	switch (which_nt){
-	case'A':return 'T';
-	case'C':return 'G';
-	case'G':return 'C';
-	case'T':return 'A';
-	default:cout << "Wrong nucleotide!" << endl; return 0;
-	}
-}
 int couldPatchInteract[4][4] = {
 	{ 0, 1, 1, 0 },
 	{ 1, 0, 0, 1 },
@@ -139,8 +128,8 @@ int correctbonding(int n0serial, int n01x, int n01y, int n01z){
 	int ornt1 = 7 - ornt0;
 	int n0ps = -1, n1ps = -1; // patch serial for the right bonding. -1 if not exist.
 	int temp_ntSerial;
-	n0ps = mol[n0serial].findPatchSerial(ornt0);
-	n1ps = mol[n1serial].findPatchSerial(ornt1);
+	n0ps = findPatchSerial[mol[n0serial].ornt][ornt0];
+	n1ps = findPatchSerial[mol[n1serial].ornt][ornt1];
 	if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps]){
 		mol[n0serial].correctbond[n0ps] = n1serial;
 		mol[n1serial].correctbond[n1ps] = n0serial;
@@ -148,8 +137,8 @@ int correctbonding(int n0serial, int n01x, int n01y, int n01z){
 		static uniform_int_distribution<> patchDis(0, 3);
 		for (int i = 0; i < 8; i++){
 			temp_ntSerial = patchDis(gen);
-			mol[n0serial].patch[n0ps][i] = nt[temp_ntSerial];
-			mol[n1serial].patch[n1ps][7 - i] = nt[3 - temp_ntSerial];
+			mol[n0serial].patch[n0ps][i] = temp_ntSerial;
+			mol[n1serial].patch[n1ps][7 - i] = ntSerialPair[temp_ntSerial];
 		}
 		return 0;
 	}

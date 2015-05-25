@@ -9,4 +9,5 @@ extern double T;
 int simulationPrepare();
 int simulationProcess();
 
+int showStats(int step, int totalSteps, int step_stat);
 int maxCorrectSize();
