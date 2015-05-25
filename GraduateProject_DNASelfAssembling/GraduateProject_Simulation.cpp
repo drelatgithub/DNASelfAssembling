@@ -244,10 +244,14 @@ int showStats(int step, int totalSteps, int step_stat){
 	cout << "estimated remaining time: "; timeDisplay(time_remaining);
 	cout << endl;
 	ofstream coorOut("coordinates.txt");
-	coorOut << T << endl << step << endl << maxSize << endl << historyMax << endl;
+	static ofstream sizeOut("sizes.txt");
+	coorOut << T << endl << step << endl << maxSize << endl;
 	for (int i = 0; i < N; i++){
 		coorOut << mol[i].px.x << ' ' << mol[i].px.y << ' ' << mol[i].px.z << endl;
 	}
+	sizeOut << step << ' ' << maxSize << endl;
+	coorOut.close();
+	if (step == totalSteps)sizeOut.close();
 	return 0;
 }
 
