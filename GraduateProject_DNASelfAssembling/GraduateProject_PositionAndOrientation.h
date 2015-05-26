@@ -13,14 +13,21 @@ struct ppos{
 	ppos operator+(const ppos &a)const;
 	ppos operator-()const;
 	ppos operator-(const ppos &a)const;
+	ppos add(int ax, int ay, int az)const;
 	friend ostream& operator<<(ostream &os, const ppos &px);
 };
 ostream& operator<<(ostream &os, const ppos &px);
 
 
 //ornt2bpornt[whichOrnt][bpSerial] gives an integer between 0 - 7
-extern int ornt2bpornt[][4];
+extern short ornt2bpornt[][4];
 int ornt2bpornt_init();
 //findPatchSerial[whichOrnt][bpOrnt] gives the patch serial 0 - 3, or -1 if not exist
-extern int findPatchSerial[][8];
+extern short findPatchSerial[][8];
 int findPatchSerial_init();
+//bporntRot[bpOrnt][axis x, y, z][times of 90-degree rotation] gives the new base-pair orientation
+extern short bporntRot[8][3][4];
+int bporntRot_init();
+//orntRot[whichOrnt][axis x, y, z][times of 90-degree rotation] gives the new molecule orientation
+extern short orntRot[24][3][4];
+int orntRot_init();

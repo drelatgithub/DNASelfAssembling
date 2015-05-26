@@ -66,7 +66,7 @@ DNAmol *mol;
 int N; // Total molecules.
 
 char nt[4] = { 'A', 'C', 'G', 'T' };
-int ntSerial(char which_nt){
+short ntSerial(char which_nt){
 	switch (which_nt){
 	case'A':return 0;
 	case'C':return 1;
@@ -75,7 +75,7 @@ int ntSerial(char which_nt){
 	default:cout << "Wrong nucleotide!" << endl; return -1;
 	}
 }
-int ntSerialPair[4] = { 3, 2, 1, 0 };
+short ntSerialPair[4] = { 3, 2, 1, 0 };
 int couldPatchInteract[4][4] = {
 	{ 0, 1, 1, 0 },
 	{ 1, 0, 0, 1 },

@@ -13,7 +13,7 @@ struct DNAmol{
 	ppos px;
 	int ornt; // 0, 1, 2, ..., 23
 	short patch[4][8]; // 32-nt patch sequences are divided into 4 parts, each ranging from the center to the ends.
-	int correctbond[4]; // -1 by default and if not bonded.
+	short correctbond[4]; // -1 by default and if not bonded.
 	DNAmol();
 	DNAmol put(int nx, int ny, int nz, int nornt);
 	DNAmol put(const atom_in_unitcell &a, int x_init, int y_init, int z_init);
@@ -25,8 +25,8 @@ extern int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. 
 extern int N; // Total molecules.
 
 extern char nt[4]; // A C G T
-int ntSerial(char which_nt);
-extern int ntSerialPair[4];
+short ntSerial(char which_nt);
+extern short ntSerialPair[4];
 extern int couldPatchInteract[4][4];
 extern int isPatchConsequent[4]; // If the nucleotide sequence in a patch is 5'-3', it is consequent.
 

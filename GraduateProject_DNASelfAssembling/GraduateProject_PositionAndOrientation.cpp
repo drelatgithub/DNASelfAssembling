@@ -9,6 +9,9 @@ ppos ppos::operator-()const{
 ppos ppos::operator-(const ppos &a)const{
 	return ppos(x - a.x, y - a.y, z - a.z);
 }
+ppos ppos::add(int ax, int ay, int az)const{
+	return ppos(x + ax, y + ay, z + az);
+}
 ppos ppos::adjust(){
 	x = (x < 0) ? (x%_Nx + _Nx) % _Nx : x%_Nx;
 	y = (y < 0) ? (y%_Ny + _Ny) % _Ny : y%_Ny;
@@ -21,7 +24,7 @@ ostream& operator<<(ostream &os, const ppos &px){
 }
 
 
-int ornt2bpornt[24][4];
+short ornt2bpornt[24][4];
 int ornt2bpornt_init(){
 	int mainOrnt, subOrnt;
 	int i, j, a[3], b[3];
@@ -42,8 +45,8 @@ int ornt2bpornt_init(){
 		*/
 		ornt2bpornt[i][2] = ornt2bpornt[i][3] = 0;
 		for (j = 0; j < 3; j++){
-			a[j] = (ornt2bpornt[i][0] >> (2 - j)) % 2;
-			b[j] = (ornt2bpornt[i][1] >> (2 - j)) % 2;
+			a[j] = (ornt2bpornt[i][0] >> (2 - j)) & 1;
+			b[j] = (ornt2bpornt[i][1] >> (2 - j)) & 1;
 		}
 		for (j = 0; j < 3; j++){
 			ornt2bpornt[i][2] <<= 1;
@@ -54,7 +57,7 @@ int ornt2bpornt_init(){
 	}
 	return 0;
 }
-int findPatchSerial[24][8];
+short findPatchSerial[24][8];
 int findPatchSerial_init(){
 	int i, j;
 	for (i = 0; i < 24; i++){
@@ -62,6 +65,49 @@ int findPatchSerial_init(){
 	}
 	for (i = 0; i < 24; i++){
 		for (j = 0; j < 4; j++)findPatchSerial[i][ornt2bpornt[i][j]] = j;
+	}
+	return 0;
+}
+short bporntRot[8][3][4];
+int bporntRot_init(){
+	short i, j, k;
+	short p0, p1, p2;
+	short v0, v1, v2;
+	short temp;
+	for (i = 0; i < 8; i++){
+		for (j = 0; j < 3; j++){
+			p0 = 2 - j;
+			p1 = (p0 + 2) % 3;
+			p2 = (p1 + 2) % 3;
+			v0 = (i >> p0) & 1;
+			v1 = (i >> p1) & 1;
+			v2 = (i >> p2) & 1;
+			for (k = 0; k < 4; k++){
+				bporntRot[i][j][k] = (v0 << p0) + (v1 << p1) + (v2 << p2);
+				temp = v1; v1 = !v2; v2 = temp;
+			}
+		}
+	}
+	return 0;
+}
+short orntRot[24][3][4];
+int orntRot_init(){
+	int op0, op1, np0, np1;
+	int i, j, k;
+	int mainOrnt, subOrnt, subOrnt_as_pow;
+	for (i = 0; i < 24; i++){
+		op0 = ornt2bpornt[i][0];
+		op1 = ornt2bpornt[i][1];
+		for (j = 0; j < 3; j++){
+			for (k = 0; k < 4; k++){
+				np0 = bporntRot[op0][j][k];
+				np1 = bporntRot[op1][j][k];
+				mainOrnt = np0;
+				subOrnt = 0; subOrnt_as_pow = 7 - np0^np1;
+				for (; subOrnt_as_pow > 1; subOrnt_as_pow >>= 1)subOrnt++;
+				orntRot[i][j][k] = mainOrnt + 8 * subOrnt;
+			}
+		}
 	}
 	return 0;
 }
