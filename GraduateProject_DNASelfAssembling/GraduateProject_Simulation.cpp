@@ -161,14 +161,16 @@ double energy_local(int s){
 int moveStep(int s){
 	double E0 = energy_local(s);
 	static uniform_int_distribution<> translateOrRotate(0, 1);
-	static uniform_int_distribution<> anotherOrnt(0, 22); // only 23 possible orientations in order to exclude the original orientation
+	static uniform_int_distribution<> anotherOrntAxis(0, 2);
+	static uniform_int_distribution<> anotherOrntTurns(1, 3);
 	static uniform_int_distribution<> anotherCoor(-1, 1);
 	static uniform_real_distribution<> judge(0, 1); // Metropolis Criterion
 	static ppos opx, npx;
 	if (translateOrRotate(gen)){
 		int oOrnt = mol[s].ornt;
-		int nOrnt = anotherOrnt(gen);
-		nOrnt = (nOrnt >= oOrnt) ? (nOrnt + 1) : nOrnt;
+		int nOrntAxis = anotherOrntAxis(gen);
+		int nOrntTurns = anotherOrntTurns(gen);
+		int nOrnt = orntRot[oOrnt][nOrntAxis][nOrntTurns];
 		mol[s].ornt = nOrnt;
 		double E1 = energy_local(s);
 		if (E1 > E0 && judge(gen) > exp(-(E1 - E0) / k_B / T)){
