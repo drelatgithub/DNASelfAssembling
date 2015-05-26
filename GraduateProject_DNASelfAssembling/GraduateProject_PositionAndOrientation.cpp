@@ -12,6 +12,11 @@ ppos ppos::operator-(const ppos &a)const{
 ppos ppos::add(int ax, int ay, int az)const{
 	return ppos(x + ax, y + ay, z + az);
 }
+ppos ppos::set(int nx, int ny, int nz){
+	x = nx; y = ny; z = nz;
+	adjust();
+	return *this;
+}
 ppos ppos::adjust(){
 	x = (x < 0) ? (x%_Nx + _Nx) % _Nx : x%_Nx;
 	y = (y < 0) ? (y%_Ny + _Ny) % _Ny : y%_Ny;

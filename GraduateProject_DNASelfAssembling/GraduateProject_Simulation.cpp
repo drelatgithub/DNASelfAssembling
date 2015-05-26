@@ -2,11 +2,11 @@
 
 bool couldPlaceMolecule(int x, int y, int z){
 	int i, j, k;
-	ppos npx;
+	static ppos npx;
 	for (i = -1; i <= 1; i++){
 		for (j = -1; j <= 1; j++){
 			for (k = -1; k <= 1; k++){
-				npx = ppos(x + i, y + j, z + k);
+				npx.set(x + i, y + j, z + k);
 				if (i*i + j*j + k*k != 3 && stage[npx.x][npx.y][npx.z] >= 0){
 					return false;
 				}
@@ -15,7 +15,7 @@ bool couldPlaceMolecule(int x, int y, int z){
 	}
 	return true;
 }
-bool couldPlaceMolecule(ppos px){
+bool couldPlaceMolecule(const ppos &px){
 	return couldPlaceMolecule(px.x, px.y, px.z);
 }
 int simulationPrepare(){
@@ -122,7 +122,7 @@ double energy_local(int s){
 	for (i = -1; i <= 1; i += 2){
 		for (j = -1; j <= 1; j += 2){
 			for (k = -1; k <= 1; k += 2){
-				npx = mol[s].px + ppos(i, j, k);
+				npx = mol[s].px.add(i, j, k);
 				if (stage[npx.x][npx.y][npx.z] >= 0)nearests++;
 			}
 		}
@@ -139,7 +139,7 @@ double energy_local(int s){
 	for (i = -1; i <= 1; i += 2){
 		for (j = -1; j <= 1; j += 2){
 			for (k = -1; k <= 1; k += 2){
-				npx = mol[s].px + ppos(i, j, k);
+				npx = mol[s].px.add(i, j, k);
 				int s1 = stage[npx.x][npx.y][npx.z];
 				if (s1 >= 0){
 					int ornt0 = 4 * (i + 1) / 2 + 2 * (j + 1) / 2 + (k + 1) / 2;
@@ -177,7 +177,7 @@ int moveStep(int s){
 	}
 	else{
 		opx = mol[s].px;
-		npx = opx + ppos(anotherCoor(gen), anotherCoor(gen), anotherCoor(gen));
+		npx = opx.add(anotherCoor(gen), anotherCoor(gen), anotherCoor(gen));
 		if (stage[npx.x][npx.y][npx.z] == -1){
 			mol[s].px = npx;
 			stage[opx.x][opx.y][opx.z] = -1;
@@ -254,9 +254,10 @@ int showStats(int step, int totalSteps, int step_stat){
 int anotherMoleculeCombined(int *mark, int previousSerial){
 	int ok = 1;
 	mark[previousSerial] = 1;
+	ppos dpx;
 	for (int i = 0; i < 4; i++){
 		if (mol[previousSerial].correctbond[i] >= 0 && !mark[mol[previousSerial].correctbond[i]]){
-			ppos dpx = mol[mol[previousSerial].correctbond[i]].px - mol[previousSerial].px;
+			dpx = mol[mol[previousSerial].correctbond[i]].px - mol[previousSerial].px;
 			if ((dpx.x == 1 || dpx.x == _Nx - 1) && (dpx.y == 1 || dpx.y == _Ny - 1) && (dpx.z == 1 || dpx.z == _Nz - 1)){
 				ok += anotherMoleculeCombined(mark, mol[previousSerial].correctbond[i]);
 			}

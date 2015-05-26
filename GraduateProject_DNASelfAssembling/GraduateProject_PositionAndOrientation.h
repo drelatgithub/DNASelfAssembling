@@ -10,6 +10,7 @@ struct ppos{
 	ppos adjust();
 	ppos(){adjust(); }
 	ppos(int nx, int ny, int nz){ x = nx; y = ny; z = nz; adjust(); }
+	ppos set(int nx, int ny, int nz);
 	ppos operator+(const ppos &a)const;
 	ppos operator-()const;
 	ppos operator-(const ppos &a)const;
