@@ -147,7 +147,7 @@ double energy_local(int s){
 					int n0ps = -1, n1ps = -1; // patch serial for the relative bonding. -1 if not exist.
 					n0ps = findPatchSerial[mol[s].ornt][ornt0];
 					n1ps = findPatchSerial[mol[s1].ornt][ornt1];
-					if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps]){
+					if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps] && couldPatchInteract_ornt(mol[s].ornt,n0ps,mol[s1].ornt,n1ps)){
 						E_patches_kcal += energy_local_patch(s, n0ps, s1, n1ps);
 					}
 				}
@@ -198,7 +198,7 @@ int simulationProcess(){
 	long totalSteps = 10000000;
 	long step;
 	long step_stat = 5000;
-	T = 310;
+	T = 315;
 
 	for (step = 1; step <= totalSteps; step++){
 		if (step % step_stat == 0){

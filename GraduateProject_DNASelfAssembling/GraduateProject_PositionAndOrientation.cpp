@@ -62,6 +62,17 @@ int ornt2bpornt_init(){
 	}
 	return 0;
 }
+short bpornt2ornt[8][8];
+int bpornt2ornt_init(){
+	int i, j;
+	for (i = 0; i < 8; i++){
+		for (j = 0; j < 8; j++)bpornt2ornt[i][j] = -1;
+	}
+	for (i = 0; i < 24; i++){
+		bpornt2ornt[ornt2bpornt[i][0]][ornt2bpornt[i][1]] = i;
+	}
+	return 0;
+}
 short findPatchSerial[24][8];
 int findPatchSerial_init(){
 	int i, j;
@@ -99,7 +110,6 @@ short orntRot[24][3][4];
 int orntRot_init(){
 	int op0, op1, np0, np1;
 	int i, j, k;
-	int mainOrnt, subOrnt, subOrnt_as_pow;
 	for (i = 0; i < 24; i++){
 		op0 = ornt2bpornt[i][0];
 		op1 = ornt2bpornt[i][1];
@@ -107,10 +117,7 @@ int orntRot_init(){
 			for (k = 0; k < 4; k++){
 				np0 = bporntRot[op0][j][k];
 				np1 = bporntRot[op1][j][k];
-				mainOrnt = np0;
-				subOrnt = 0; subOrnt_as_pow = 7 - np0^np1;
-				for (; subOrnt_as_pow > 1; subOrnt_as_pow >>= 1)subOrnt++;
-				orntRot[i][j][k] = mainOrnt + 8 * subOrnt;
+				orntRot[i][j][k] = bpornt2ornt[np0][np1];
 			}
 		}
 	}

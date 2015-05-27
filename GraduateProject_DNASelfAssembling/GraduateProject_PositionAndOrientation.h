@@ -1,9 +1,9 @@
 #pragma once
 
 // periodic stage size
-#define _Nx 12
-#define _Ny 12
-#define _Nz 12
+#define _Nx 15
+#define _Ny 15
+#define _Nz 15
 
 struct ppos{
 	int x, y, z;
@@ -23,6 +23,9 @@ ostream& operator<<(ostream &os, const ppos &px);
 //ornt2bpornt[whichOrnt][bpSerial] gives an integer between 0 - 7
 extern short ornt2bpornt[][4];
 int ornt2bpornt_init();
+//bpornt2ornt[serial 0 ornt][serial 1 ornt] gives the orientation, or -1 if not valid
+extern short bpornt2ornt[8][8];
+int bpornt2ornt_init();
 //findPatchSerial[whichOrnt][bpOrnt] gives the patch serial 0 - 3, or -1 if not exist
 extern short findPatchSerial[][8];
 int findPatchSerial_init();

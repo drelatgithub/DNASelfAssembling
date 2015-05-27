@@ -9,6 +9,7 @@ clock_t t_end;
 
 int programInitiation(){
 	ornt2bpornt_init();
+	bpornt2ornt_init();
 	findPatchSerial_init();
 	bporntRot_init();
 	orntRot_init();
@@ -21,6 +22,7 @@ int _tmain(int argc, _TCHAR* argv[]){
 	patchPreset();
 	simulationPrepare();
 	simulationProcess();
+
 
 	return 0;
 }

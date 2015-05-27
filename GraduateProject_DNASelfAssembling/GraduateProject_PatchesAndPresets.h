@@ -28,6 +28,8 @@ extern char nt[4]; // A C G T
 short ntSerial(char which_nt);
 extern short ntSerialPair[4];
 extern int couldPatchInteract[4][4];
+extern short couldPatchInteract_paraJudge[4];
+bool couldPatchInteract_ornt(int ornt0, int n0ps, int ornt1, int n1ps);
 extern int isPatchConsequent[4]; // If the nucleotide sequence in a patch is 5'-3', it is consequent.
 
 int patchPreset();

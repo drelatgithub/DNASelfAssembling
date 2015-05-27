@@ -3,22 +3,19 @@
 atom_in_unitcell atom_in_unitcell::set(int nx, int ny, int nz, int nsd, int nornt0, int nornt1){
 	px.set(nx, ny, nz);
 	sd = nsd;
-	int mainOrnt = nornt0;
-	int subOrnt = 0, subOrnt_as_pow = 7 - nornt0^nornt1;
-	for (; subOrnt_as_pow > 1; subOrnt_as_pow >>= 1)subOrnt++;
-	ornt = mainOrnt + 8 * subOrnt;
+	ornt = bpornt2ornt[nornt0][nornt1];
 	return *this;
 }
 atom_in_unitcell unitcell[8];
 int unitcell_init(){
-	unitcell[0].set(0, 0, 0, 3, 7, 4);
-	unitcell[1].set(0, 2, 2, 2, 7, 4);
-	unitcell[2].set(2, 0, 2, 2, 4, 7);
-	unitcell[3].set(2, 2, 0, 2, 4, 7);
-	unitcell[4].set(1, 1, 1, 1, 5, 6);
-	unitcell[5].set(1, 3, 3, 1, 5, 6);
-	unitcell[6].set(3, 1, 3, 1, 6, 5);
-	unitcell[7].set(3, 3, 1, 1, 6, 5);
+	unitcell[0].set(0, 0, 0, 3, 7, 1);
+	unitcell[1].set(0, 2, 2, 2, 7, 1);
+	unitcell[2].set(2, 0, 2, 2, 4, 2);
+	unitcell[3].set(2, 2, 0, 2, 4, 2);
+	unitcell[4].set(1, 1, 1, 1, 5, 0);
+	unitcell[5].set(1, 3, 3, 1, 5, 0);
+	unitcell[6].set(3, 1, 3, 1, 6, 3);
+	unitcell[7].set(3, 3, 1, 1, 6, 3);
 	return 0;
 }
 
@@ -82,6 +79,10 @@ int couldPatchInteract[4][4] = {
 	{ 1, 0, 0, 1 },
 	{ 0, 1, 1, 0 }
 };
+short couldPatchInteract_paraJudge[4] = { 1, 3, 0, 2 };
+bool couldPatchInteract_ornt(int ornt0, int n0ps, int ornt1, int n1ps){
+	return(ornt2bpornt[ornt0][couldPatchInteract_paraJudge[n0ps]] + ornt2bpornt[ornt1][couldPatchInteract_paraJudge[n1ps]] == 7);
+}
 int isPatchConsequent[4] = { 1, 0, 0, 1 };
 
 int stageClear(){
@@ -99,13 +100,14 @@ int molPreset(){
 	int _N;
 	N = 0;
 
-	// 2x2x2 unitcells
+	// u_x * u_y * u_z unitcells
+	int u_x = 2, u_y = 2, u_z = 2;
 	int i, j, k, m;
-	_N = 2 * 2 * 2 * 8;
+	_N = u_x * u_y * u_z * 8;
 	mol = new DNAmol[_N];
-	for (i = 0; i < 2; i++){
-		for (j = 0; j < 2; j++){
-			for (k = 0; k < 2; k++){
+	for (i = 0; i < u_x; i++){
+		for (j = 0; j < u_y; j++){
+			for (k = 0; k < u_z; k++){
 				for (m = 0; m < 8; m++){
 					mol[N].put(unitcell[m], i * 4 + 1, j * 4 + 1, k * 4 + 1);
 					stage[mol[N].px.x][mol[N].px.y][mol[N].px.z] = N;
@@ -130,7 +132,7 @@ int correctbonding(int n0serial, int n01x, int n01y, int n01z){
 	int temp_ntSerial;
 	n0ps = findPatchSerial[mol[n0serial].ornt][ornt0];
 	n1ps = findPatchSerial[mol[n1serial].ornt][ornt1];
-	if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps]){
+	if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps] && couldPatchInteract_ornt(mol[n0serial].ornt,n0ps,mol[n1serial].ornt,n1ps)){
 		mol[n0serial].correctbond[n0ps] = n1serial;
 		mol[n1serial].correctbond[n1ps] = n0serial;
 		// patch assign
