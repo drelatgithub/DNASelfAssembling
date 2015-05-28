@@ -269,6 +269,10 @@ int anotherMoleculeCombined(int *mark, int previousSerial){
 }
 int maxCorrectSize(){
 	int *mark = new int[N];
+	int *clustersize = new int[N];
+	int clusternum = 0;
+	int sum_clustersize = 0;
+	double avg_clustersize, stdevp_clustersize = 0.0;
 	int max = 0, temp;
 	int p;
 	for (p = 0; p < N; p++){
@@ -278,13 +282,24 @@ int maxCorrectSize(){
 	while (p < N){
 		if (!mark[p]){
 			temp = anotherMoleculeCombined(mark, p);
-			cout << temp << '\t';
+			clustersize[clusternum++] = temp;
 			if (max < temp)max = temp;
 		}
 		p++;
 	}
-	cout << endl;
+	for (p = 0; p < clusternum; p++){
+		sum_clustersize += clustersize[p];
+	}
+	avg_clustersize = (double)sum_clustersize / clusternum;
+	for (p = 0; p < clusternum; p++){
+		stdevp_clustersize += (clustersize[p] - avg_clustersize)*(clustersize[p] - avg_clustersize);
+	}
+	stdevp_clustersize = sqrt(stdevp_clustersize / clusternum);
+	cout << "clusters: " << clusternum << endl;
+	cout << "avg size: " << avg_clustersize << endl;
+	cout << "std error: " << stdevp_clustersize << endl;
 
 	delete[]mark;
+	delete[]clustersize;
 	return max;
 }

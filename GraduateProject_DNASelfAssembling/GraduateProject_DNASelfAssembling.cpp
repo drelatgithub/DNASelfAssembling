@@ -17,8 +17,8 @@ int programInitiation(){
 	return 0;
 }
 int _tmain(int argc, _TCHAR* argv[]){
-	t_start = clock();
 	programInitiation();
+	t_start = clock();
 	patchPreset();
 	simulationPrepare();
 	simulationProcess();
