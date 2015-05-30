@@ -18,7 +18,9 @@ struct DNAmol{
 	int links;
 	int link_with[8];
 	double link_with_pRatio[8];
-	ppos relative_to_rot_center; // without adjustments
+	ppos px_cnt_backup;
+	ppos px_fwd_dest;
+	int ornt_cnt_backup, ornt_fwd_dest;
 	DNAmol();
 	DNAmol& put(int nx, int ny, int nz, int nornt);
 	DNAmol& put(const atom_in_unitcell &a, int x_init, int y_init, int z_init);

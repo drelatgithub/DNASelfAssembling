@@ -1,9 +1,9 @@
 #pragma once
 
 // periodic stage size
-#define _Nx 15
-#define _Ny 15
-#define _Nz 15
+#define _Nx 12
+#define _Ny 12
+#define _Nz 12
 
 struct ppos{
 	int x, y, z;
