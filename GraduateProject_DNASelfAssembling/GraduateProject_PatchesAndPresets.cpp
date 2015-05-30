@@ -1,6 +1,6 @@
 #include"stdafx.h"
 
-atom_in_unitcell atom_in_unitcell::set(int nx, int ny, int nz, int nsd, int nornt0, int nornt1){
+atom_in_unitcell& atom_in_unitcell::set(int nx, int ny, int nz, int nsd, int nornt0, int nornt1){
 	px.set(nx, ny, nz);
 	sd = nsd;
 	ornt = bpornt2ornt[nornt0][nornt1];
@@ -28,13 +28,15 @@ DNAmol::DNAmol(){
 		for (j = 0; j < 8; j++)patch[i][j] = 3; // 'T' as unpaired nucleotides.
 	}
 }
-DNAmol DNAmol::put(int nx, int ny, int nz, int nornt){
+DNAmol& DNAmol::put(int nx, int ny, int nz, int nornt){
 	px.set(nx, ny, nz);
+	px.adjust();
 	ornt = nornt;
 	return *this;
 }
-DNAmol DNAmol::put(const atom_in_unitcell &a, int x_init, int y_init, int z_init){
-	px = a.px.add(x_init, y_init, z_init);
+DNAmol& DNAmol::put(const atom_in_unitcell &a, int x_init, int y_init, int z_init){
+	px = a.px.plus(x_init, y_init, z_init);
+	px.adjust();
 	ornt = a.ornt;
 	return *this;
 }
@@ -124,7 +126,8 @@ int molPreset(){
 }
 
 int correctbonding(int n0serial, int n01x, int n01y, int n01z){
-	ppos npx = mol[n0serial].px.add(n01x, n01y, n01z);
+	ppos npx = mol[n0serial].px.plus(n01x, n01y, n01z);
+	npx.adjust();
 	int n1serial = stage[npx.x][npx.y][npx.z];
 	int ornt0 = 4 * (n01x + 1) / 2 + 2 * (n01y + 1) / 2 + (n01z + 1) / 2;
 	int ornt1 = 7 - ornt0;
@@ -153,7 +156,8 @@ int nucleotidePreset(){
 		for (i = -1; i <= 1; i+=2){
 			for (j = -1; j <= 1; j+=2){
 				for (k = -1; k <= 1; k+=2){
-					npx = mol[m].px.add(i, j, k);
+					npx = mol[m].px.plus(i, j, k);
+					npx.adjust();
 					if (stage[npx.x][npx.y][npx.z]>m){
 						correctbonding(m, i, j, k);
 					}

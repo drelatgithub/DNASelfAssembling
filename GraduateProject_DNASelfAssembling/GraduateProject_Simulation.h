@@ -5,6 +5,7 @@
 
 #define cal2J 4.184 // thermochemical calorie
 
+extern uniform_real_distribution<> judge;
 extern double T;
 int simulationPrepare();
 int simulationProcess();

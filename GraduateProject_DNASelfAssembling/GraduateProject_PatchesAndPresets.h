@@ -4,7 +4,7 @@ struct atom_in_unitcell{
 	ppos px;
 	int sd; // Shared Dimension
 	int ornt; // 0, 1, ..., 23
-	atom_in_unitcell set(int nx, int ny, int nz, int nsd, int nornt0, int nornt1);
+	atom_in_unitcell& set(int nx, int ny, int nz, int nsd, int nornt0, int nornt1);
 };
 extern atom_in_unitcell unitcell[];
 int unitcell_init();
@@ -14,9 +14,14 @@ struct DNAmol{
 	int ornt; // 0, 1, 2, ..., 23
 	short patch[4][8]; // 32-nt patch sequences are divided into 4 parts, each ranging from the center to the ends.
 	short correctbond[4]; // -1 by default and if not bonded.
+	short status; // 0 - not mentioned; 1 - used; 2 - in current cluster
+	int links;
+	int link_with[8];
+	double link_with_pRatio[8];
+	ppos relative_to_rot_center; // without adjustments
 	DNAmol();
-	DNAmol put(int nx, int ny, int nz, int nornt);
-	DNAmol put(const atom_in_unitcell &a, int x_init, int y_init, int z_init);
+	DNAmol& put(int nx, int ny, int nz, int nornt);
+	DNAmol& put(const atom_in_unitcell &a, int x_init, int y_init, int z_init);
 	int displayPatch()const;
 	int displayPatch(ofstream &out)const;
 };

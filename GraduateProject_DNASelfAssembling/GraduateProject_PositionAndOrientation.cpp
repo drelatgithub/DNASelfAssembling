@@ -9,15 +9,17 @@ ppos ppos::operator-()const{
 ppos ppos::operator-(const ppos &a)const{
 	return ppos(x - a.x, y - a.y, z - a.z);
 }
-ppos ppos::add(int ax, int ay, int az)const{
+bool ppos::operator==(const ppos &a)const{
+	return (x == a.x && y == a.y && z == a.z);
+}
+ppos ppos::plus(int ax, int ay, int az)const{
 	return ppos(x + ax, y + ay, z + az);
 }
-ppos ppos::set(int nx, int ny, int nz){
+ppos& ppos::set(int nx, int ny, int nz){
 	x = nx; y = ny; z = nz;
-	adjust();
 	return *this;
 }
-ppos ppos::adjust(){
+ppos& ppos::adjust(){
 	x = (x < 0) ? (x%_Nx + _Nx) % _Nx : x%_Nx;
 	y = (y < 0) ? (y%_Ny + _Ny) % _Ny : y%_Ny;
 	z = (z < 0) ? (z%_Nz + _Nz) % _Nz : z%_Nz;

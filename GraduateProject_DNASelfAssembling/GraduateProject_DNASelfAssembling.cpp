@@ -13,13 +13,15 @@ int programInitiation(){
 	findPatchSerial_init();
 	bporntRot_init();
 	orntRot_init();
+
 	unitcell_init();
+	patchPreset();
+
 	return 0;
 }
 int _tmain(int argc, _TCHAR* argv[]){
 	programInitiation();
 	t_start = clock();
-	patchPreset();
 	simulationPrepare();
 	simulationProcess();
 

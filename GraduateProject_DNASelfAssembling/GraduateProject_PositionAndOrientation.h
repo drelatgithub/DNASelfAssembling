@@ -7,14 +7,15 @@
 
 struct ppos{
 	int x, y, z;
-	ppos adjust();
-	ppos(){adjust(); }
-	ppos(int nx, int ny, int nz){ x = nx; y = ny; z = nz; adjust(); }
-	ppos set(int nx, int ny, int nz);
+	ppos& adjust();
+	ppos(){}
+	ppos(int nx, int ny, int nz){ x = nx; y = ny; z = nz; }
+	ppos& set(int nx, int ny, int nz);
 	ppos operator+(const ppos &a)const;
 	ppos operator-()const;
 	ppos operator-(const ppos &a)const;
-	ppos add(int ax, int ay, int az)const;
+	bool operator==(const ppos &a)const;
+	ppos plus(int ax, int ay, int az)const;
 	friend ostream& operator<<(ostream &os, const ppos &px);
 };
 ostream& operator<<(ostream &os, const ppos &px);

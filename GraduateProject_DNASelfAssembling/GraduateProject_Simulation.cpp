@@ -7,6 +7,7 @@ bool couldPlaceMolecule(int x, int y, int z){
 		for (j = -1; j <= 1; j++){
 			for (k = -1; k <= 1; k++){
 				npx.set(x + i, y + j, z + k);
+				npx.adjust();
 				if (i*i + j*j + k*k != 3 && stage[npx.x][npx.y][npx.z] >= 0){
 					return false;
 				}
@@ -43,7 +44,8 @@ int simulationPrepare(){
 	uniform_int_distribution<long> transDis_z(0, _Nz - 1);
 	uniform_int_distribution<> orntDis(0, 23);
 	int x, y, z;
-	for (int m = 0; m < N; m++){
+	int m, n;
+	for (m = 0; m < N; m++){
 		do{
 			x = transDis_x(gen);
 			y = transDis_y(gen);
@@ -52,10 +54,17 @@ int simulationPrepare(){
 		stage[x][y][z] = m;
 		mol[m].put(x, y, z, orntDis(gen));
 	}
+
+	for (m = 0; m < N; m++){
+		for (n = m + 1; n < N; n++){
+
+		}
+	}
 	return 0;
 }
 
 double T; // Kelvin
+uniform_real_distribution<> judge(0, 1);
 
 double energy_local_patch(int s, int n0ps, int s1, int n1ps){
 	double E_patch_kcal = 0;
@@ -119,11 +128,14 @@ double energy_local(int s){
 
 	double E_repulsive; // Joules
 	nearests = 0;
-	for (i = -1; i <= 1; i += 2){
-		for (j = -1; j <= 1; j += 2){
-			for (k = -1; k <= 1; k += 2){
-				npx = mol[s].px.add(i, j, k);
-				if (stage[npx.x][npx.y][npx.z] >= 0)nearests++;
+	for (i = -1; i <= 1; i++){
+		for (j = -1; j <= 1; j++){
+			for (k = -1; k <= 1; k++){
+				if (i || j || k){
+					npx = mol[s].px.plus(i, j, k);
+					npx.adjust();
+					if (stage[npx.x][npx.y][npx.z] >= 0)nearests++;
+				}
 			}
 		}
 	}
@@ -139,7 +151,8 @@ double energy_local(int s){
 	for (i = -1; i <= 1; i += 2){
 		for (j = -1; j <= 1; j += 2){
 			for (k = -1; k <= 1; k += 2){
-				npx = mol[s].px.add(i, j, k);
+				npx = mol[s].px.plus(i, j, k);
+				npx.adjust();
 				int s1 = stage[npx.x][npx.y][npx.z];
 				if (s1 >= 0){
 					int ornt0 = 4 * (i + 1) / 2 + 2 * (j + 1) / 2 + (k + 1) / 2;
@@ -164,7 +177,6 @@ int moveStep(int s){
 	static uniform_int_distribution<> anotherOrntAxis(0, 2);
 	static uniform_int_distribution<> anotherOrntTurns(1, 3);
 	static uniform_int_distribution<> anotherCoor(-1, 1);
-	static uniform_real_distribution<> judge(0, 1); // Metropolis Criterion
 	static ppos opx, npx;
 	if (translateOrRotate(gen)){
 		int oOrnt = mol[s].ornt;
@@ -179,7 +191,8 @@ int moveStep(int s){
 	}
 	else{
 		opx = mol[s].px;
-		npx = opx.add(anotherCoor(gen), anotherCoor(gen), anotherCoor(gen));
+		npx = opx.plus(anotherCoor(gen), anotherCoor(gen), anotherCoor(gen));
+		npx.adjust();
 		if (stage[npx.x][npx.y][npx.z] == -1){
 			mol[s].px = npx;
 			stage[opx.x][opx.y][opx.z] = -1;
@@ -194,18 +207,248 @@ int moveStep(int s){
 	}
 	return 0;
 }
+ppos posAfterMove(int dpxx, int dpxy, int dpxz, int cs, int axis, int turns, int dx, int dy, int dz){
+	int ndpxx = dpxx, ndpxy = dpxy, ndpxz = dpxz;
+	if (turns){
+		switch (axis){
+		case 0:
+			switch (turns){
+			case 1:ndpxy = -dpxz; ndpxz = dpxy; break;
+			case 2:ndpxy = -dpxy; ndpxz = -dpxz; break;
+			case 3:ndpxy = dpxz; ndpxz = -dpxy;
+			}break;
+		case 1:
+			switch (turns){
+			case 1:ndpxz = -dpxx; ndpxx = dpxz; break;
+			case 2:ndpxz = -dpxz; ndpxx = -dpxx; break;
+			case 3:ndpxz = dpxx; ndpxx = -dpxz;
+			}break;
+		case 2:
+			switch (turns){
+			case 1:ndpxx = -dpxy; ndpxy = dpxx; break;
+			case 2:ndpxx = -dpxx; ndpxy = -dpxy; break;
+			case 3:ndpxx = dpxy; ndpxy = -dpxx;
+			}
+		}
+	}
+	return mol[cs].px.plus(ndpxx + dx, ndpxy + dy, ndpxz + dz);
+}
+double interactEnergy(int s0, int s1){ // never use stage[][][] in this function
+	static ppos dpx = mol[s1].px - mol[s0].px;
+	dpx.adjust();
+	if (dpx.x > 1)dpx.x -= _Nx;
+	if (dpx.y > 1)dpx.y -= _Ny;
+	if (dpx.z > 1)dpx.z -= _Nz;
+	if (dpx.x*dpx.x + dpx.y*dpx.y + dpx.z*dpx.z > 3)return 0.0;
+	double E = 100 * k_B;
+	if (dpx.x && dpx.y && dpx.z){
+		int ornt0 = 4 * (dpx.x + 1) / 2 + 2 * (dpx.y + 1) / 2 + (dpx.z + 1) / 2;
+		int ornt1 = 7 - ornt0;
+		int n0ps = -1, n1ps = -1; // patch serial for the relative bonding. -1 if not exist.
+		n0ps = findPatchSerial[mol[s0].ornt][ornt0];
+		n1ps = findPatchSerial[mol[s1].ornt][ornt1];
+		if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps] && couldPatchInteract_ornt(mol[s0].ornt, n0ps, mol[s1].ornt, n1ps)){
+			E += energy_local_patch(s0, n0ps, s1, n1ps);
+		}
+	}
+	return E;
+}
+int recruit(int s, int dpxx, int dpxy, int dpxz, int cs, int axis, int turns, int dx, int dy, int dz){
+	/* By introducing seemingly redundant parameter dpxx, dpxy and dpxz
+	   (which is simply the position difference between molecule s and cs), 
+	   we could be sure that the position difference would always have a change between -1 and 1,
+	   thus avoiding the unphysical rotation near the surface due to periodic boundary conditions.
+
+	   note: do not use static variables in this function unless required, because the function is recursive.
+	*/
+	mol[s].status = 2;
+	mol[s].relative_to_rot_center.set(dpxx, dpxy, dpxz); // without adjustments
+	int i, j, k;
+	int s1;
+	int oOrnt, nOrnt;
+	double E0, Ef, Er;
+	double pf, pr;
+	ppos px_cnt = mol[s].px,
+		 px_fwd = posAfterMove(dpxx, dpxy, dpxz, cs, axis, turns, dx, dy, dz),
+		 px_rev = posAfterMove(dpxx, dpxy, dpxz, cs, axis, turns ? (4 - turns) : 0, -dx, -dy, -dz),
+		 npx;
+	px_fwd.adjust();
+	px_rev.adjust();
+	bool accept = true;
+	for (i = -1; i <= 1; i++){
+		for (j = -1; j <= 1; j++){
+			for (k = -1; k <= 1; k++){
+				npx = mol[s].px.plus(i, j, k);
+				npx.adjust();
+				if ((i || j || k) && stage[npx.x][npx.y][npx.z] >= 0){ // propose a link
+					s1 = stage[npx.x][npx.y][npx.z];
+					if (px_fwd == npx){ // forward move cause overlap
+						switch (mol[s1].status){
+						case 0: // recruit and accept (temp)
+							if (mol[s].links >= 8){
+								cout << "Warning: too many links for particle " << s << endl;
+								break;
+							}
+							mol[s].link_with[mol[s].links] = s1;
+							if (px_rev == npx)mol[s].link_with_pRatio[mol[s].links] = 1; // reverse also overlap
+							else{ // reverse not overlap
+								E0 = interactEnergy(s, s1);
+								oOrnt = mol[s].ornt;
+								mol[s].put(px_rev.x, px_rev.y, px_rev.z, orntRot[oOrnt][axis][turns ? (4 - turns) : 0]);
+								Er = interactEnergy(s, s1);
+								mol[s].put(px_cnt.x, px_cnt.y, px_cnt.z, oOrnt);
+								pr = (Er > E0) ? exp(-(Er - E0) / k_B / T) : 0;
+								mol[s].link_with_pRatio[mol[s].links] = pr / 1.0;
+							}
+							mol[s].links++;
+							accept = accept && recruit(s1, dpxx + i, dpxy + j, dpxz + k, cs, axis, turns, dx, dy, dz);
+							break;
+						case 1: // unrecruit and deny
+							accept = false;
+							break;
+						//case 2: ;// do nothing because already recruited
+						}
+					}
+					else{ // forward move do not cause overlap
+						switch (mol[s1].status){
+						case 0: // try to recruit
+							E0 = interactEnergy(s, s1);
+							oOrnt = mol[s].ornt;
+							mol[s].put(px_fwd.x, px_fwd.y, px_fwd.z, orntRot[oOrnt][axis][turns]);
+							Ef = interactEnergy(s, s1);
+							mol[s].put(px_cnt.x, px_cnt.y, px_cnt.z, oOrnt);
+							pf = (Ef > E0) ? exp(-(Ef - E0) / k_B / T) : 0;
+							if (judge(gen) < pf){ // link formed (where pf must be over 0.0)
+								if (mol[s].links >= 8){
+									cout << "Warning: too many links for particle " << s << endl;
+									break;
+								}
+								mol[s].link_with[mol[s].links] = s1;
+								if (px_rev == npx)mol[s].link_with_pRatio[mol[s].links] = 1; // reverse overlap
+								else{ // reverse not overlap
+									mol[s].put(px_rev.x, px_rev.y, px_rev.z, orntRot[oOrnt][axis][turns ? (4 - turns) : 0]);
+									Er = interactEnergy(s, s1);
+									mol[s].put(px_cnt.x, px_cnt.y, px_cnt.z, oOrnt);
+									pr = (Er > E0) ? exp(-(Er - E0) / k_B / T) : 0;
+									mol[s].link_with_pRatio[mol[s].links] = pr / pf;
+								}
+								mol[s].links++;
+								accept = accept && recruit(s1, dpxx + i, dpxy + j, dpxz + k, cs, axis, turns, dx, dy, dz);
+							}
+							break;
+						//case 1: case 2: ;// do nothing
+						}
+					}
+					//calculate energy
+				}
+			}
+		}
+	}
+	return 0;
+}
+double groupInteractEnergy(){
+	int m, i, j, k, s;
+	static ppos npx;
+	double E = 0;
+	for (m = 0; m < N; m++){
+		if (mol[m].status == 2){
+			for (i = -1; i <= 1; i++){
+				for (j = -1; j <= 1; j++){
+					for (k = -1; k <= 1; k++){
+						npx = mol[m].px.plus(i, j, k);
+						npx.adjust();
+						s = stage[npx.x][npx.y][npx.z];
+						if (s >= 0){
+							if (mol[s].status != 2){
+								E += interactEnergy(m, s);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return E;
+}
+int groupAfterMove(int cs, int axis, int turns, int dx, int dy, int dz){
+	int m;
+	static ppos npx;
+	for (m = 0; m < N; m++){
+		if (mol[m].status == 2){
+			stage[mol[m].px.x][mol[m].px.y][mol[m].px.z] = -1;
+		}
+	}
+	for (m = 0; m < N; m++){
+		if (mol[m].status == 2){
+			npx = posAfterMove(mol[m].relative_to_rot_center.x, mol[m].relative_to_rot_center.y, mol[m].relative_to_rot_center.z, cs, axis, turns, dx, dy, dz);
+			npx.adjust();
+			mol[m].px = npx;
+			stage[npx.x][npx.y][npx.z] = m;
+		}
+	}
+	return 0;
+}
+int moveStep_Group(int s){
+	int m, i;
+	static uniform_int_distribution<> translateOrRotate(0, 1);
+	static uniform_int_distribution<> anotherOrntAxis(0, 2);
+	static uniform_int_distribution<> anotherOrntTurns(1, 3);
+	static uniform_int_distribution<> anotherCoor(-1, 1);
+	int nOrntAxis = 0, nOrntTurns = 0;
+	static ppos dpx(0, 0, 0);
+	double E0, E1, p_acc;
+	if (translateOrRotate(gen)){
+		nOrntAxis = anotherOrntAxis(gen);
+		nOrntTurns = anotherOrntTurns(gen);
+	}
+	else{
+		dpx.set(anotherCoor(gen), anotherCoor(gen), anotherCoor(gen)); // without adjustments
+	}
+	if (nOrntTurns || dpx.x || dpx.y || dpx.z){ // at least one move
+		if (recruit(s, 0, 0, 0, s, nOrntAxis, nOrntTurns, dpx.x, dpx.y, dpx.z)){
+			E0 = groupInteractEnergy();
+			groupAfterMove(s, nOrntAxis, nOrntTurns, dpx.x, dpx.y, dpx.z);
+			E1 = groupInteractEnergy();
+			p_acc = (E1 > E0) ? exp(-(E1 - E0) / k_B / T) : 1;
+			for (m = 0; m < N; m++){
+				if (mol[m].status == 2){
+					for (i = 0; i < mol[m].links; i++){
+						p_acc *= mol[m].link_with_pRatio[i];
+					}
+				}
+			}
+			if (judge(gen) < p_acc);
+			else{ // return to original position
+				groupAfterMove(s, nOrntAxis, nOrntTurns ? (4 - nOrntTurns) : 0, -dpx.x, -dpx.y, -dpx.z);
+			}
+		}
+		for (m = 0; m < N; m++){
+			if (mol[m].status == 2){
+				mol[m].status = 1; // mark as used
+			}
+		}
+	} // no move proposed, and leave the molecule marked 0 (unused), to facilitate future moves if recruited
+	return 0;
+}
 int simulationProcess(){
 	long totalSteps = 10000000;
 	long step;
-	long step_stat = 5000;
+	long step_stat = 50;
 	T = 315;
 
 	for (step = 1; step <= totalSteps; step++){
+		for (int i = 0; i < N; i++){
+			mol[i].status = 0; // marked as unused
+			mol[i].links = 0; // unlinked
+		}
 		if (step % step_stat == 0){
 			showStats(step, totalSteps, step_stat);
 		}
 		for (int i = 0; i < N; i++){
-			moveStep(i);
+			//moveStep(i);
+			if (mol[i].status == 0){
+				moveStep_Group(i);
+			}
 		}
 	}
 
@@ -260,6 +503,7 @@ int anotherMoleculeCombined(int *mark, int previousSerial){
 	for (int i = 0; i < 4; i++){
 		if (mol[previousSerial].correctbond[i] >= 0 && !mark[mol[previousSerial].correctbond[i]]){
 			dpx = mol[mol[previousSerial].correctbond[i]].px - mol[previousSerial].px;
+			dpx.adjust();
 			if ((dpx.x == 1 || dpx.x == _Nx - 1) && (dpx.y == 1 || dpx.y == _Ny - 1) && (dpx.z == 1 || dpx.z == _Nz - 1)){
 				ok += anotherMoleculeCombined(mark, mol[previousSerial].correctbond[i]);
 			}
