@@ -15,6 +15,9 @@ bool ppos::operator==(const ppos &a)const{
 ppos ppos::plus(int ax, int ay, int az)const{
 	return ppos(x + ax, y + ay, z + az);
 }
+ppos ppos::crossproduct(int ax, int ay, int az)const{
+	return ppos(y*az - z*ay, z*ax - x*az, x*ay - y*ax);
+}
 ppos& ppos::set(int nx, int ny, int nz){
 	x = nx; y = ny; z = nz;
 	return *this;
@@ -28,6 +31,9 @@ ppos& ppos::adjust(){
 ostream& operator<<(ostream &os, const ppos &px){
 	os << '(' << px.x << ',' << px.y << ',' << px.z << ')';
 	return os;
+}
+int mod2(const ppos &a){
+	return a.x*a.x + a.y*a.y + a.z*a.z;
 }
 
 

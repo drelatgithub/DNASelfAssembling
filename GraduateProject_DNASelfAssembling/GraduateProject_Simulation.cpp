@@ -60,6 +60,8 @@ int simulationPrepare(){
 
 double T; // Kelvin
 uniform_real_distribution<> judge(0, 1);
+int *cluster_series;
+int cluster_size;
 
 double energy_local_patch(int s, int n0ps, int s1, int n1ps){
 	double E_patch_kcal = 0;
@@ -260,7 +262,20 @@ bool recruit(int s, int dpxx, int dpxy, int dpxz, int cs, int axis, int turns, i
 
 	   note: do not use static variables in this function unless required, because the function is recursive.
 	*/
+	ppos dpx(dpxx, dpxy, dpxz), n_dir;
 	mol[s].status = 2;
+	cluster_series[cluster_size++] = s; // use cluster_series instead of checking molecule status in loops to improve efficiency
+	if (turns){
+		switch (axis){
+		case 0: n_dir.set(1, 0, 0); break;
+		case 1: n_dir.set(0, 1, 0); break;
+		case 2: n_dir.set(0, 0, 1);
+		}
+	}
+	else{
+		n_dir.set(dx, dy, dz);
+	}
+	mol[s].cluster_eff_rad_diff2 = (double)mod2(dpx.crossproduct(n_dir.x, n_dir.y, n_dir.z)) / mod2(n_dir);
 	int i, j, k;
 	int s1;
 	int oOrnt, nOrnt;
@@ -348,22 +363,21 @@ bool recruit(int s, int dpxx, int dpxy, int dpxz, int cs, int axis, int turns, i
 	return accept;
 }
 double groupInteractEnergy(){
-	int m, i, j, k, s;
+	int m, n, i, j, k, s;
 	static ppos npx;
 	double E = 0;
-	for (m = 0; m < N; m++){
-		if (mol[m].status == 2){
-			for (i = -1; i <= 1; i++){
-				for (j = -1; j <= 1; j++){
-					for (k = -1; k <= 1; k++){
-						if (i || j || k){
-							npx = mol[m].px.plus(i, j, k);
-							npx.adjust();
-							s = stage[npx.x][npx.y][npx.z];
-							if (s >= 0){
-								if (mol[s].status != 2){
-									E += interactEnergy(m, s);
-								}
+	for (m = 0; m < cluster_size; m++){
+		n = cluster_series[m];
+		for (i = -1; i <= 1; i++){
+			for (j = -1; j <= 1; j++){
+				for (k = -1; k <= 1; k++){
+					if (i || j || k){
+						npx = mol[n].px.plus(i, j, k);
+						npx.adjust();
+						s = stage[npx.x][npx.y][npx.z];
+						if (s >= 0){
+							if (mol[s].status != 2){
+								E += interactEnergy(n, s);
 							}
 						}
 					}
@@ -374,29 +388,27 @@ double groupInteractEnergy(){
 	return E;
 }
 int groupMove(bool forward){
-	int m;
-	for (m = 0; m < N; m++){
-		if (mol[m].status == 2){
-			stage[mol[m].px.x][mol[m].px.y][mol[m].px.z] = -1;
-		}
+	int m, n;
+	for (m = 0; m < cluster_size; m++){
+		n = cluster_series[m];
+		stage[mol[n].px.x][mol[n].px.y][mol[n].px.z] = -1;
 	}
-	for (m = 0; m < N; m++){
-		if (mol[m].status == 2){
-			if (forward){
-				mol[m].px = mol[m].px_fwd_dest;
-				mol[m].ornt = mol[m].ornt_fwd_dest;
-			}
-			else{
-				mol[m].px = mol[m].px_cnt_backup;
-				mol[m].ornt = mol[m].ornt_cnt_backup;
-			}
-			stage[mol[m].px.x][mol[m].px.y][mol[m].px.z] = m;
+	for (m = 0; m < cluster_size; m++){
+		n = cluster_series[m];
+		if (forward){
+			mol[n].px = mol[n].px_fwd_dest;
+			mol[n].ornt = mol[n].ornt_fwd_dest;
 		}
+		else{
+			mol[n].px = mol[n].px_cnt_backup;
+			mol[n].ornt = mol[n].ornt_cnt_backup;
+		}
+		stage[mol[n].px.x][mol[n].px.y][mol[n].px.z] = n;
 	}
 	return 0;
 }
 int moveStep_Group(int s){
-	int m, i;
+	int m, n, i;
 	static uniform_int_distribution<> translateOrRotate(0, 1);
 	static uniform_int_distribution<> anotherOrntAxis(0, 2);
 	static uniform_int_distribution<> anotherOrntTurns(1, 3);
@@ -405,6 +417,7 @@ int moveStep_Group(int s){
 	static ppos dpx;
 	int s1;
 	double E0, E1, p_acc;
+	double total_cluster_eff_rad_diff2 = 0, damping_coeff_fact;
 	bool b_acc = true;
 	dpx.set(0, 0, 0);
 	if (translateOrRotate(gen)){
@@ -415,26 +428,32 @@ int moveStep_Group(int s){
 		dpx.set(anotherCoor(gen), anotherCoor(gen), anotherCoor(gen)); // without adjustments
 	}
 	if (nOrntTurns || dpx.x || dpx.y || dpx.z){ // at least one move
+		cluster_size = 0; // reset cluster_size before recruiting
 		if (recruit(s, 0, 0, 0, s, nOrntAxis, nOrntTurns, dpx.x, dpx.y, dpx.z)){
-			for (m = 0; m < N; m++){
-				if (mol[m].status == 2){
-					s1 = stage[mol[m].px_fwd_dest.x][mol[m].px_fwd_dest.y][mol[m].px_fwd_dest.z];
-					if (s1 >= 0 && mol[s1].status != 2){
-						b_acc = false; // prevent overlapping
-					}
+			for (m = 0; m < cluster_size; m++){
+				n = cluster_series[m];
+				s1 = stage[mol[n].px_fwd_dest.x][mol[n].px_fwd_dest.y][mol[n].px_fwd_dest.z];
+				if (s1 >= 0 && mol[s1].status != 2){
+					b_acc = false; // prevent far-away overlapping
 				}
+				total_cluster_eff_rad_diff2 += mol[n].cluster_eff_rad_diff2;
 			}
 			if (b_acc){
 				E0 = groupInteractEnergy();
 				groupMove(true);
 				E1 = groupInteractEnergy();
 				p_acc = (E1 > E0) ? exp(-(E1 - E0) / k_B / T) : 1;
-				for (m = 0; m < N; m++){
-					if (mol[m].status == 2){
-						for (i = 0; i < mol[m].links; i++){
-							p_acc *= mol[m].link_with_pRatio[i];
-						}
+				for (m = 0; m < cluster_size; m++){
+					n = cluster_series[m];
+					for (i = 0; i < mol[n].links; i++){
+						p_acc *= mol[n].link_with_pRatio[i];
 					}
+				}
+				damping_coeff_fact = sqrt(3.0) / 2 / (sqrt(3.0) / 2 + sqrt(total_cluster_eff_rad_diff2 / cluster_size));
+				if (nOrntTurns){
+					p_acc *= damping_coeff_fact*damping_coeff_fact*damping_coeff_fact;
+				}else{
+					p_acc *= damping_coeff_fact;
 				}
 				if (judge(gen) < p_acc); // accept the move
 				else{ // return to original position
@@ -442,35 +461,47 @@ int moveStep_Group(int s){
 				}
 			}
 		}
-		for (m = 0; m < N; m++){
-			if (mol[m].status == 2){
-				mol[m].status = 1; // mark as used
-			}
+		for (m = 0; m < cluster_size; m++){
+			n = cluster_series[m];
+			mol[n].status = 1; // mark as used
 		}
 	} // (else) no move proposed, and leave the molecule marked 0 (unused), to facilitate future moves if recruited
 	return 0;
 }
 int simulationProcess(){
-	long totalSteps = 10000000;
+	long totalSteps = 1000000;
 	long step;
-	long step_stat = 400;
-	T = 315;
+	long step_stat = 500;
+	int *operation_series = new int[N];
+	cluster_series = new int[N];
+	int i, j, temp;
+	T = 308;
 
 	for (step = 1; step <= totalSteps; step++){
-		for (int i = 0; i < N; i++){
+		for (i = 0; i < N; i++){
 			mol[i].status = 0; // marked as unused
 			mol[i].links = 0; // unlinked
+			operation_series[i] = i;
+		}
+		for (i = 0; i < N; i++){
+			j = (int)(i + judge(gen)*(N - i)); // random integer between i and N-1
+			temp = operation_series[j];
+			operation_series[j] = operation_series[i];
+			operation_series[i] = temp;
+		}
+		for (i = 0; i < N; i++){
+			j = operation_series[i];
+			//moveStep(i);
+			if (mol[j].status == 0){
+				moveStep_Group(j);
+			}
 		}
 		if (step % step_stat == 0){
 			showStats(step, totalSteps, step_stat);
 		}
-		for (int i = 0; i < N; i++){
-			//moveStep(i);
-			if (mol[i].status == 0){
-				moveStep_Group(i);
-			}
-		}
 	}
+	delete[]operation_series;
+	delete[]cluster_series;
 
 	return 0;
 }

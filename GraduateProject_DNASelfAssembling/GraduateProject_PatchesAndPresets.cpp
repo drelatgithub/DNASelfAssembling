@@ -9,13 +9,13 @@ atom_in_unitcell& atom_in_unitcell::set(int nx, int ny, int nz, int nsd, int nor
 atom_in_unitcell unitcell[8];
 int unitcell_init(){
 	unitcell[0].set(0, 0, 0, 3, 7, 1);
-	unitcell[1].set(0, 2, 2, 2, 7, 1);
-	unitcell[2].set(2, 0, 2, 2, 4, 2);
-	unitcell[3].set(2, 2, 0, 2, 4, 2);
-	unitcell[4].set(1, 1, 1, 1, 5, 0);
-	unitcell[5].set(1, 3, 3, 1, 5, 0);
-	unitcell[6].set(3, 1, 3, 1, 6, 3);
-	unitcell[7].set(3, 3, 1, 1, 6, 3);
+	unitcell[1].set(0, 2, 2, 1, 7, 1);
+	unitcell[2].set(2, 0, 2, 1, 4, 2);
+	unitcell[3].set(2, 2, 0, 1, 4, 2);
+	unitcell[4].set(1, 1, 1, 0, 5, 0);
+	unitcell[5].set(1, 3, 3, 0, 5, 0);
+	unitcell[6].set(3, 1, 3, 0, 6, 3);
+	unitcell[7].set(3, 3, 1, 0, 6, 3);
 	return 0;
 }
 
@@ -103,7 +103,7 @@ int molPreset(){
 	N = 0;
 
 	// u_x * u_y * u_z unitcells
-	int u_x = 2, u_y = 2, u_z = 2;
+	int u_x = 3, u_y = 3, u_z = 3;
 	int i, j, k, m;
 	_N = u_x * u_y * u_z * 8;
 	mol = new DNAmol[_N];

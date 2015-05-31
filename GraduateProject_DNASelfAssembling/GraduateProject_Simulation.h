@@ -7,6 +7,8 @@
 
 extern uniform_real_distribution<> judge;
 extern double T;
+extern int *cluster_series;
+extern int cluster_size;
 int simulationPrepare();
 int simulationProcess();
 

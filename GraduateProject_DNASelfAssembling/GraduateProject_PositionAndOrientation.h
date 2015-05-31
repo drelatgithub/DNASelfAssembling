@@ -1,9 +1,9 @@
 #pragma once
 
 // periodic stage size
-#define _Nx 12
-#define _Ny 12
-#define _Nz 12
+#define _Nx 20
+#define _Ny 20
+#define _Nz 20
 
 struct ppos{
 	int x, y, z;
@@ -16,9 +16,11 @@ struct ppos{
 	ppos operator-(const ppos &a)const;
 	bool operator==(const ppos &a)const;
 	ppos plus(int ax, int ay, int az)const;
+	ppos crossproduct(int ax, int ay, int az)const;
 	friend ostream& operator<<(ostream &os, const ppos &px);
 };
 ostream& operator<<(ostream &os, const ppos &px);
+int mod2(const ppos &a);
 
 
 //ornt2bpornt[whichOrnt][bpSerial] gives an integer between 0 - 7
