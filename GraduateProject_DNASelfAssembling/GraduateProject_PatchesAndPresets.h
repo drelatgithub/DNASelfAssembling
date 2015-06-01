@@ -22,6 +22,7 @@ struct DNAmol{
 	ppos px_fwd_dest;
 	int ornt_cnt_backup, ornt_fwd_dest;
 	double cluster_eff_rad_diff2;
+	int outputTrace; // marked as different values for output use
 	DNAmol();
 	DNAmol& put(int nx, int ny, int nz, int nornt);
 	DNAmol& put(const atom_in_unitcell &a, int x_init, int y_init, int z_init);
