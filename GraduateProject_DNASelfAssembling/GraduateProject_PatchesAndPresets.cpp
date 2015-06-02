@@ -1,24 +1,21 @@
 #include"stdafx.h"
 
-atom_in_unitcell atom_in_unitcell::set(int nx, int ny, int nz, int nsd, int nornt0, int nornt1){
-	px = ppos(nx, ny, nz);
+atom_in_unitcell& atom_in_unitcell::set(int nx, int ny, int nz, int nsd, int nornt0, int nornt1){
+	px.set(nx, ny, nz);
 	sd = nsd;
-	int mainOrnt = nornt0;
-	int subOrnt = 0, subOrnt_as_pow = 7 - nornt0^nornt1;
-	for (; subOrnt_as_pow > 1; subOrnt_as_pow >>= 1)subOrnt++;
-	ornt = mainOrnt + 8 * subOrnt;
+	ornt = bpornt2ornt[nornt0][nornt1];
 	return *this;
 }
 atom_in_unitcell unitcell[8];
 int unitcell_init(){
-	unitcell[0].set(0, 0, 0, 3, 7, 4);
-	unitcell[1].set(0, 2, 2, 2, 7, 4);
-	unitcell[2].set(2, 0, 2, 2, 4, 7);
-	unitcell[3].set(2, 2, 0, 2, 4, 7);
-	unitcell[4].set(1, 1, 1, 1, 5, 6);
-	unitcell[5].set(1, 3, 3, 1, 5, 6);
-	unitcell[6].set(3, 1, 3, 1, 6, 5);
-	unitcell[7].set(3, 3, 1, 1, 6, 5);
+	unitcell[0].set(0, 0, 0, 3, 7, 1);
+	unitcell[1].set(0, 2, 2, 1, 7, 1);
+	unitcell[2].set(2, 0, 2, 1, 4, 2);
+	unitcell[3].set(2, 2, 0, 1, 4, 2);
+	unitcell[4].set(1, 1, 1, 0, 5, 0);
+	unitcell[5].set(1, 3, 3, 0, 5, 0);
+	unitcell[6].set(3, 1, 3, 0, 6, 3);
+	unitcell[7].set(3, 3, 1, 0, 6, 3);
 	return 0;
 }
 
@@ -28,64 +25,66 @@ DNAmol::DNAmol(){
 	int i, j;
 	for (i = 0; i < 4; i++){
 		correctbond[i] = -1;
-		for (j = 0; j < 8; j++)patch[i][j] = 'T';
+		for (j = 0; j < 8; j++)patch[i][j] = 3; // 'T' as unpaired nucleotides.
 	}
 }
-DNAmol DNAmol::put(int nx, int ny, int nz, int nornt){
-	px = ppos(nx, ny, nz);
+DNAmol& DNAmol::put(int nx, int ny, int nz, int nornt){
+	px.set(nx, ny, nz);
+	px.adjust();
 	ornt = nornt;
 	return *this;
 }
-DNAmol DNAmol::put(const atom_in_unitcell &a, int x_init, int y_init, int z_init){
-	px = a.px + ppos(x_init, y_init, z_init);
+DNAmol& DNAmol::put(const atom_in_unitcell &a, int x_init, int y_init, int z_init){
+	px = a.px.plus(x_init, y_init, z_init);
+	px.adjust();
 	ornt = a.ornt;
 	return *this;
 }
 int DNAmol::displayPatch()const{
-	for (int i = 0; i < 4; i++){
-		cout.write(patch[i], 8);
+	int i, j;
+	for (i = 0; i < 4; i++){
+		for (j = 0; j < 8; j++){
+			cout.put(nt[patch[i][j]]);
+		}
 	}
 	cout << endl;
 	return 0;
 }
 int DNAmol::displayPatch(ofstream &out)const{
-	for (int i = 0; i < 4; i++){
-		out.write(patch[i], 8);
+	int i, j;
+	for (i = 0; i < 4; i++){
+		for (j = 0; j < 8; j++){
+			out.put(nt[patch[i][j]]);
+		}
 	}
 	out << endl;
 	return 0;
-}
-int DNAmol::findPatchSerial(int whichOrnt)const{ // Find the patch serial in the designated orientation. -1 if not found.
-	for (int m = 0; m < 4; m++){
-		if (ornt2bpornt[ornt][m] == whichOrnt){
-			return m;
-		}
-	}
-	return -1;
 }
 int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using periodic boundary conditions.
 DNAmol *mol;
 int N; // Total molecules.
 
 char nt[4] = { 'A', 'C', 'G', 'T' };
-int ntSerial(char which_nt){
+short ntSerial(char which_nt){
 	switch (which_nt){
 	case'A':return 0;
 	case'C':return 1;
 	case'G':return 2;
 	case'T':return 3;
+	default:cout << "Wrong nucleotide!" << endl; return -1;
 	}
 }
-int ntSerialPair[4] = { 3, 2, 1, 0 };
-char ntPair(char which_nt){
-	return nt[ntSerialPair[ntSerial(which_nt)]];
-}
+short ntSerialPair[4] = { 3, 2, 1, 0 };
 int couldPatchInteract[4][4] = {
 	{ 0, 1, 1, 0 },
 	{ 1, 0, 0, 1 },
 	{ 1, 0, 0, 1 },
 	{ 0, 1, 1, 0 }
 };
+short couldPatchInteract_paraJudge[4] = { 1, 3, 0, 2 };
+bool couldPatchInteract_ornt(int ornt0, int n0ps, int ornt1, int n1ps){
+	return(ornt2bpornt[ornt0][couldPatchInteract_paraJudge[n0ps]] + ornt2bpornt[ornt1][couldPatchInteract_paraJudge[n1ps]] == 7);
+}
 int isPatchConsequent[4] = { 1, 0, 0, 1 };
 
 int stageClear(){
@@ -103,13 +102,14 @@ int molPreset(){
 	int _N;
 	N = 0;
 
-	// 2x2x2 unitcells
+	// u_x * u_y * u_z unitcells
+	int u_x = 3, u_y = 3, u_z = 3;
 	int i, j, k, m;
-	_N = 2 * 2 * 2 * 8;
+	_N = u_x * u_y * u_z * 8;
 	mol = new DNAmol[_N];
-	for (i = 0; i < 2; i++){
-		for (j = 0; j < 2; j++){
-			for (k = 0; k < 2; k++){
+	for (i = 0; i < u_x; i++){
+		for (j = 0; j < u_y; j++){
+			for (k = 0; k < u_z; k++){
 				for (m = 0; m < 8; m++){
 					mol[N].put(unitcell[m], i * 4 + 1, j * 4 + 1, k * 4 + 1);
 					stage[mol[N].px.x][mol[N].px.y][mol[N].px.z] = N;
@@ -126,23 +126,24 @@ int molPreset(){
 }
 
 int correctbonding(int n0serial, int n01x, int n01y, int n01z){
-	ppos npx = mol[n0serial].px + ppos(n01x, n01y, n01z);
+	ppos npx = mol[n0serial].px.plus(n01x, n01y, n01z);
+	npx.adjust();
 	int n1serial = stage[npx.x][npx.y][npx.z];
 	int ornt0 = 4 * (n01x + 1) / 2 + 2 * (n01y + 1) / 2 + (n01z + 1) / 2;
 	int ornt1 = 7 - ornt0;
 	int n0ps = -1, n1ps = -1; // patch serial for the right bonding. -1 if not exist.
 	int temp_ntSerial;
-	n0ps = mol[n0serial].findPatchSerial(ornt0);
-	n1ps = mol[n1serial].findPatchSerial(ornt1);
-	if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps]){
+	n0ps = findPatchSerial[mol[n0serial].ornt][ornt0];
+	n1ps = findPatchSerial[mol[n1serial].ornt][ornt1];
+	if (n0ps >= 0 && n1ps >= 0 && couldPatchInteract[n0ps][n1ps] && couldPatchInteract_ornt(mol[n0serial].ornt,n0ps,mol[n1serial].ornt,n1ps)){
 		mol[n0serial].correctbond[n0ps] = n1serial;
 		mol[n1serial].correctbond[n1ps] = n0serial;
 		// patch assign
 		static uniform_int_distribution<> patchDis(0, 3);
 		for (int i = 0; i < 8; i++){
 			temp_ntSerial = patchDis(gen);
-			mol[n0serial].patch[n0ps][i] = nt[temp_ntSerial];
-			mol[n1serial].patch[n1ps][7 - i] = nt[3 - temp_ntSerial];
+			mol[n0serial].patch[n0ps][i] = temp_ntSerial;
+			mol[n1serial].patch[n1ps][7 - i] = ntSerialPair[temp_ntSerial];
 		}
 		return 0;
 	}
@@ -150,12 +151,13 @@ int correctbonding(int n0serial, int n01x, int n01y, int n01z){
 }
 int nucleotidePreset(){
 	int m, i, j, k;
-	ppos npx;
+	static ppos npx;
 	for (m = 0; m < N; m++){
 		for (i = -1; i <= 1; i+=2){
 			for (j = -1; j <= 1; j+=2){
 				for (k = -1; k <= 1; k+=2){
-					npx = mol[m].px + ppos(i, j, k);
+					npx = mol[m].px.plus(i, j, k);
+					npx.adjust();
 					if (stage[npx.x][npx.y][npx.z]>m){
 						correctbonding(m, i, j, k);
 					}

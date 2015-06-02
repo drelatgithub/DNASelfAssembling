@@ -9,15 +9,16 @@
 
 #include <stdio.h>
 #include <tchar.h>
+#include <stdlib.h>
 
 // TODO:  在此处引用程序需要的其他头文件
 #include<iostream>
 #include<fstream>
 #include<random>
+#include<cmath>
+#include<ctime>
 
 using namespace std;
-
-#include<math.h>
 
 #include"GraduateProject_PositionAndOrientation.h"
 #include"GraduateProject_PatchesAndPresets.h"
@@ -26,3 +27,5 @@ using namespace std;
 
 
 extern mt19937 gen;
+extern clock_t t_start;
+extern clock_t t_end;
