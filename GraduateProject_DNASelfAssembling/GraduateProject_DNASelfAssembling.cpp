@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 
+//random_device rd;
 mt19937 gen(123456);
 clock_t t_start;
 clock_t t_end;

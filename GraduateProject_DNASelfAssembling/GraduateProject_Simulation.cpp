@@ -62,6 +62,7 @@ double T; // Kelvin
 uniform_real_distribution<> judge(0, 1);
 int *cluster_series;
 int cluster_size;
+int max_pseudo_size;
 
 double energy_local_patch(int s, int n0ps, int s1, int n1ps){
 	double E_patch_kcal = 0;
@@ -112,8 +113,8 @@ double energy_local(int s){
 	The free energy is determined using the nearest-neighbor parametrization (pH 7),
 	taking into account terminal A-T penalties,
 	                    internal mismatches,
-						dangling ends, and
-						temperature and salt concentration dependence,
+						*dangling ends, and
+						*temperature and salt concentration dependence,
 	but do not consider loops or bulges.
 
 	References:
@@ -292,6 +293,10 @@ bool recruit(int s, int dpxx, int dpxy, int dpxz, int cs, int axis, int turns, i
 	mol[s].ornt_cnt_backup = oOrnt = mol[s].ornt;
 	mol[s].ornt_fwd_dest = nOrnt = orntRot[mol[s].ornt][axis][turns];
 	bool accept = true;
+	double judge_value;
+	if (s == 210){
+		i = 100;
+	}
 	for (i = -1; i <= 1; i++){
 		for (j = -1; j <= 1; j++){
 			for (k = -1; k <= 1; k++){
@@ -317,7 +322,7 @@ bool recruit(int s, int dpxx, int dpxy, int dpxz, int cs, int axis, int turns, i
 								mol[s].link_with_pRatio[mol[s].links] = pr / 1.0;
 							}
 							mol[s].links++;
-							accept = accept && recruit(s1, dpxx + i, dpxy + j, dpxz + k, cs, axis, turns, dx, dy, dz);
+							accept = recruit(s1, dpxx + i, dpxy + j, dpxz + k, cs, axis, turns, dx, dy, dz) && accept; // "accept" must be put after "&&"
 							break;
 						case 1: // unrecruit and deny
 							accept = false;
@@ -333,7 +338,8 @@ bool recruit(int s, int dpxx, int dpxy, int dpxz, int cs, int axis, int turns, i
 							Ef = interactEnergy(s, s1);
 							mol[s].put(px_cnt.x, px_cnt.y, px_cnt.z, oOrnt);
 							pf = (Ef > E0) ? (1 - exp(-(Ef - E0) / k_B / T)) : 0;
-							if (judge(gen) < pf){ // link formed (where pf must be over 0.0)
+							judge_value = judge(gen);
+							if (judge_value < pf){ // link formed (where pf must be over 0.0)
 								if (mol[s].links >= 8){
 									cout << "Warning: too many links for particle " << s << endl;
 									break;
@@ -348,7 +354,7 @@ bool recruit(int s, int dpxx, int dpxy, int dpxz, int cs, int axis, int turns, i
 									mol[s].link_with_pRatio[mol[s].links] = pr / pf;
 								}
 								mol[s].links++;
-								accept = accept && recruit(s1, dpxx + i, dpxy + j, dpxz + k, cs, axis, turns, dx, dy, dz);
+								accept = recruit(s1, dpxx + i, dpxy + j, dpxz + k, cs, axis, turns, dx, dy, dz) && accept; // "accept" must be put after "&&"
 							}
 							break;
 						case 1: case 2: ;// do nothing
@@ -430,6 +436,9 @@ int moveStep_Group(int s){
 	if (nOrntTurns || dpx.x || dpx.y || dpx.z){ // at least one move
 		cluster_size = 0; // reset cluster_size before recruiting
 		if (recruit(s, 0, 0, 0, s, nOrntAxis, nOrntTurns, dpx.x, dpx.y, dpx.z)){
+			if (cluster_size > max_pseudo_size){
+				max_pseudo_size = cluster_size;
+			}
 			for (m = 0; m < cluster_size; m++){
 				n = cluster_series[m];
 				s1 = stage[mol[n].px_fwd_dest.x][mol[n].px_fwd_dest.y][mol[n].px_fwd_dest.z];
@@ -443,7 +452,7 @@ int moveStep_Group(int s){
 			}
 			if (b_acc){
 				//E0 = groupInteractEnergy();
-				groupMove(true);
+				//groupMove(true);
 				//E1 = groupInteractEnergy();
 				//p_acc = (E1 > E0) ? exp(-(E1 - E0) / k_B / T) : 1;
 				p_acc = 1; // revised in 20150605. the group move acception rate DOES NOT take into account the ordinary interaction energy
@@ -454,14 +463,16 @@ int moveStep_Group(int s){
 					}
 				}
 				damping_coeff_fact = sqrt(3.0) / 2 / (sqrt(3.0) / 2 + sqrt(total_cluster_eff_rad_diff2 / cluster_size));
-				//if (nOrntTurns){
-				//	p_acc *= damping_coeff_fact*damping_coeff_fact*damping_coeff_fact;
-				//}else{
-				//	p_acc *= damping_coeff_fact;
-				//}
-				if (judge(gen) < p_acc); // accept the move
+				if (nOrntTurns){
+					p_acc *= damping_coeff_fact*damping_coeff_fact*damping_coeff_fact;
+				}else{
+					p_acc *= damping_coeff_fact;
+				}
+				if (judge(gen) < p_acc){ // accept the move
+					groupMove(true);
+				}
 				else{ // return to original position
-					groupMove(false);
+					//groupMove(false);
 				}
 			}
 		}
@@ -473,13 +484,13 @@ int moveStep_Group(int s){
 	return 0;
 }
 int simulationProcess(){
-	long totalSteps = 1000000;
+	long totalSteps = 2000000;
 	long step;
-	long step_stat = 500;
+	long step_stat = 1000;
 	int *operation_series = new int[N];
 	cluster_series = new int[N];
 	int i, j, temp;
-	T = 355;
+	T = 310;
 
 	{
 		//ofstream coorOut("F:\\coordinates.txt");
@@ -503,6 +514,7 @@ int simulationProcess(){
 			operation_series[j] = operation_series[i];
 			operation_series[i] = temp;
 		}
+		max_pseudo_size = 0;
 		for (i = 0; i < N; i++){
 			j = operation_series[i];
 			//moveStep(i);
@@ -549,16 +561,17 @@ int showStats(int step, int totalSteps, int step_stat){
 	if (historyMax < maxSize)historyMax = maxSize;
 	cout << endl << step << '/' << totalSteps << " steps" << endl;
 	cout << "max size: " << maxSize << endl;
+	cout << "max pseudo size: " << max_pseudo_size << endl;
 	cout << "time used: "; timeDisplay(time_used);
 	cout << "time per " << step_stat << " steps: " << time_per_step * step_stat << endl;
 	cout << "estimated remaining time: "; timeDisplay(time_remaining);
 	cout << endl;
 	if (step % 10000 == 0){
-		char fn[30] = "F:\\coordinates";
-		char num[10];
-		_itoa_s(step, num, 10);
-		strcat_s(fn, sizeof(fn), num);
-		strcat_s(fn, sizeof(fn), ".txt");
+		//char fn[30] = "F:\\coordinates";
+		//char num[10];
+		//_itoa_s(step, num, 10);
+		//strcat_s(fn, sizeof(fn), num);
+		//strcat_s(fn, sizeof(fn), ".txt");
 		//ofstream coorOut(fn);
 		////coorOut << T << endl << step << endl << maxSize << endl << historyMax << endl;
 		//for (int i = 0; i < N; i++){
@@ -566,7 +579,12 @@ int showStats(int step, int totalSteps, int step_stat){
 		//}
 		//coorOut.close();
 	}
-	static ofstream sizeOut("F:\\sizeat355K.txt");
+	char fn[30] = "F:\\sizeat";
+	char num[10];
+	_itoa_s((int)T, num, 10);
+	strcat_s(fn, sizeof(fn), num);
+	strcat_s(fn, sizeof(fn), "K.txt");
+	static ofstream sizeOut(fn);
 	sizeOut << step << '\t' << maxSize << endl;
 	return 0;
 }
