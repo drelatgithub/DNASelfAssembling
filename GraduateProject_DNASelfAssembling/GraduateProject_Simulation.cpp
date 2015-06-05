@@ -442,10 +442,11 @@ int moveStep_Group(int s){
 				}
 			}
 			if (b_acc){
-				E0 = groupInteractEnergy();
+				//E0 = groupInteractEnergy();
 				groupMove(true);
-				E1 = groupInteractEnergy();
-				p_acc = (E1 > E0) ? exp(-(E1 - E0) / k_B / T) : 1;
+				//E1 = groupInteractEnergy();
+				//p_acc = (E1 > E0) ? exp(-(E1 - E0) / k_B / T) : 1;
+				p_acc = 1; // revised in 20150605. the group move acception rate DOES NOT take into account the ordinary interaction energy
 				for (m = 0; m < cluster_size; m++){
 					n = cluster_series[m];
 					for (i = 0; i < mol[n].links; i++){
@@ -478,15 +479,15 @@ int simulationProcess(){
 	int *operation_series = new int[N];
 	cluster_series = new int[N];
 	int i, j, temp;
-	T = 325;
+	T = 355;
 
 	{
-		ofstream coorOut("F:\\coordinates.txt");
+		//ofstream coorOut("F:\\coordinates.txt");
 		//coorOut << T << endl << step << endl << maxSize << endl << historyMax << endl;
-		for (int i = 0; i < N; i++){
-			coorOut << mol[i].px.x << '\t' << mol[i].px.y << '\t' << mol[i].px.z << endl;
-		}
-		coorOut.close();
+		//for (int i = 0; i < N; i++){
+		//	coorOut << mol[i].px.x << '\t' << mol[i].px.y << '\t' << mol[i].px.z << endl;
+		//}
+		//coorOut.close();
 
 	}
 	for (step = 1; step <= totalSteps; step++){
@@ -558,15 +559,15 @@ int showStats(int step, int totalSteps, int step_stat){
 		_itoa_s(step, num, 10);
 		strcat_s(fn, sizeof(fn), num);
 		strcat_s(fn, sizeof(fn), ".txt");
-		ofstream coorOut(fn);
-		//coorOut << T << endl << step << endl << maxSize << endl << historyMax << endl;
-		for (int i = 0; i < N; i++){
-			coorOut << mol[i].px.x << '\t' << mol[i].px.y << '\t' << mol[i].px.z << '\t' << mol[i].outputTrace << endl;
-		}
-		coorOut.close();
+		//ofstream coorOut(fn);
+		////coorOut << T << endl << step << endl << maxSize << endl << historyMax << endl;
+		//for (int i = 0; i < N; i++){
+		//	coorOut << mol[i].px.x << '\t' << mol[i].px.y << '\t' << mol[i].px.z << '\t' << mol[i].outputTrace << endl;
+		//}
+		//coorOut.close();
 	}
-	//static ofstream sizeOut("F:\\sizeat320K.txt");
-	//sizeOut << step << '\t' << maxSize << endl;
+	static ofstream sizeOut("F:\\sizeat355K.txt");
+	sizeOut << step << '\t' << maxSize << endl;
 	return 0;
 }
 
