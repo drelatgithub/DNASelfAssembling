@@ -462,12 +462,12 @@ int moveStep_Group(int s){
 						p_acc *= mol[n].link_with_pRatio[i];
 					}
 				}
-				damping_coeff_fact = sqrt(3.0) / 2 / (sqrt(3.0) / 2 + sqrt(total_cluster_eff_rad_diff2 / cluster_size));
-				if (nOrntTurns){
-					p_acc *= damping_coeff_fact*damping_coeff_fact*damping_coeff_fact;
-				}else{
-					p_acc *= damping_coeff_fact;
-				}
+				//damping_coeff_fact = sqrt(3.0) / 2 / (sqrt(3.0) / 2 + sqrt(total_cluster_eff_rad_diff2 / cluster_size));
+				//if (nOrntTurns){
+				//	p_acc *= damping_coeff_fact*damping_coeff_fact*damping_coeff_fact;
+				//}else{
+				//	p_acc *= damping_coeff_fact;
+				//}
 				if (judge(gen) < p_acc){ // accept the move
 					groupMove(true);
 				}
@@ -493,12 +493,11 @@ int simulationProcess(){
 	T = 310;
 
 	{
-		//ofstream coorOut("F:\\coordinates.txt");
-		//coorOut << T << endl << step << endl << maxSize << endl << historyMax << endl;
-		//for (int i = 0; i < N; i++){
-		//	coorOut << mol[i].px.x << '\t' << mol[i].px.y << '\t' << mol[i].px.z << endl;
-		//}
-		//coorOut.close();
+		ofstream coorOut("F:\\coordinates.txt");
+		for (int i = 0; i < N; i++){
+			coorOut << mol[i].px.x << '\t' << mol[i].px.y << '\t' << mol[i].px.z << endl;
+		}
+		coorOut.close();
 
 	}
 	for (step = 1; step <= totalSteps; step++){
@@ -566,26 +565,26 @@ int showStats(int step, int totalSteps, int step_stat){
 	cout << "time per " << step_stat << " steps: " << time_per_step * step_stat << endl;
 	cout << "estimated remaining time: "; timeDisplay(time_remaining);
 	cout << endl;
-	if (step % 10000 == 0){
-		//char fn[30] = "F:\\coordinates";
-		//char num[10];
-		//_itoa_s(step, num, 10);
-		//strcat_s(fn, sizeof(fn), num);
-		//strcat_s(fn, sizeof(fn), ".txt");
-		//ofstream coorOut(fn);
-		////coorOut << T << endl << step << endl << maxSize << endl << historyMax << endl;
-		//for (int i = 0; i < N; i++){
-		//	coorOut << mol[i].px.x << '\t' << mol[i].px.y << '\t' << mol[i].px.z << '\t' << mol[i].outputTrace << endl;
-		//}
-		//coorOut.close();
+	if (step % 100000 == 0){
+		char fn[30] = "F:\\coordinates";
+		char num[10];
+		_itoa_s(step, num, 10);
+		strcat_s(fn, sizeof(fn), num);
+		strcat_s(fn, sizeof(fn), ".txt");
+		ofstream coorOut(fn);
+		//coorOut << T << endl << step << endl << maxSize << endl << historyMax << endl;
+		for (int i = 0; i < N; i++){
+			coorOut << mol[i].px.x << '\t' << mol[i].px.y << '\t' << mol[i].px.z << '\t' << mol[i].outputTrace << endl;
+		}
+		coorOut.close();
 	}
-	char fn[30] = "F:\\sizeat";
-	char num[10];
-	_itoa_s((int)T, num, 10);
-	strcat_s(fn, sizeof(fn), num);
-	strcat_s(fn, sizeof(fn), "K.txt");
-	static ofstream sizeOut(fn);
-	sizeOut << step << '\t' << maxSize << endl;
+	//char fn[30] = "F:\\sizeat";
+	//char num[10];
+	//_itoa_s((int)T, num, 10);
+	//strcat_s(fn, sizeof(fn), num);
+	//strcat_s(fn, sizeof(fn), "K.txt");
+	//static ofstream sizeOut(fn);
+	//sizeOut << step << '\t' << maxSize << endl;
 	return 0;
 }
 
