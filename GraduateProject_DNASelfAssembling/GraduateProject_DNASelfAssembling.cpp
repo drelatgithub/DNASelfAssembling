@@ -3,7 +3,8 @@
 
 #include "stdafx.h"
 
-mt19937 gen(123456);
+random_device rd;
+mt19937 gen(rd());
 clock_t t_start;
 clock_t t_end;
 
