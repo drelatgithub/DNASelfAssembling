@@ -1,4 +1,11 @@
-#include"stdafx.h"
+#include "GraduateProject_Simulation.h"
+
+#include <fstream>
+
+#include "globals.h"
+#include "GraduateProject_Data.h"
+#include "GraduateProject_PatchesAndPresets.h"
+#include "GraduateProject_PositionAndOrientation.h"
 
 bool couldPlaceMolecule(int x, int y, int z){
 	int i, j, k;

@@ -1,9 +1,11 @@
 #pragma once
 
+#include <iostream>
+
 // periodic stage size
-#define _Nx 30
-#define _Ny 30
-#define _Nz 30
+constexpr int _Nx = 30;
+constexpr int _Ny = 30;
+constexpr int _Nz = 30;
 
 struct ppos{
 	int x, y, z;
@@ -17,9 +19,9 @@ struct ppos{
 	bool operator==(const ppos &a)const;
 	ppos plus(int ax, int ay, int az)const;
 	ppos crossproduct(int ax, int ay, int az)const;
-	friend ostream& operator<<(ostream &os, const ppos &px);
+	friend std::ostream& operator<<(std::ostream &os, const ppos &px);
 };
-ostream& operator<<(ostream &os, const ppos &px);
+std::ostream& operator<<(std::ostream &os, const ppos &px);
 int mod2(const ppos &a);
 
 

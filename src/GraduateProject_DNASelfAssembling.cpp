@@ -1,7 +1,15 @@
 // GraduateProject_DNASelfAssembling.cpp : 定义控制台应用程序的入口点。
 //
 
-#include "stdafx.h"
+#include <ctime>
+#include <random>
+
+#include "globals.h"
+#include "GraduateProject_PatchesAndPresets.h"
+#include "GraduateProject_PositionAndOrientation.h"
+#include "GraduateProject_Simulation.h"
+
+using namespace std;
 
 random_device rd;
 mt19937 gen(rd());
@@ -20,7 +28,7 @@ int programInitiation(){
 
 	return 0;
 }
-int _tmain(int argc, _TCHAR* argv[]){
+int main(int argc, char* argv[]){
 	programInitiation();
 	t_start = clock();
 	simulationPrepare();

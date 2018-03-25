@@ -1,4 +1,4 @@
-#include"stdafx.h"
+#include "GraduateProject_PositionAndOrientation.h"
 
 ppos ppos::operator+(const ppos &a)const{
 	return ppos(x + a.x, y + a.y, z + a.z);
@@ -28,7 +28,7 @@ ppos& ppos::adjust(){
 	z = (z < 0) ? (z%_Nz + _Nz) % _Nz : z%_Nz;
 	return *this;
 }
-ostream& operator<<(ostream &os, const ppos &px){
+std::ostream& operator<<(std::ostream &os, const ppos &px){
 	os << '(' << px.x << ',' << px.y << ',' << px.z << ')';
 	return os;
 }

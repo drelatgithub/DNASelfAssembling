@@ -1,4 +1,6 @@
-#include"stdafx.h"
+#include "GraduateProject_Data.h"
+
+#include <iostream>
 
 const double NN_dH_kcal[4][4][4] = {
 	{ // AX/TY
@@ -60,11 +62,11 @@ int NN_dG_check(){
 		for (j = 0; j < 4; j++){
 			for (k = 0; k < 4; k++){
 				check[i][j][k] = NN_dH_kcal[i][j][k] - T37*NN_dS_cal[i][j][k] / 1000;
-				cout << "  \t" << check[i][j][k];
+				std::cout << "  \t" << check[i][j][k];
 			}
-			cout << endl;
+			std::cout << std::endl;
 		}
-		cout << endl;
+		std::cout << std::endl;
 	}
 	return 0;
 }
@@ -119,11 +121,11 @@ int NN_dG_DE_check(){
 		for (j = 0; j < 4; j++){
 			for (k = 0; k < 4; k++){
 				check[i][j][k] = NN_dH_DE_kcal[i][j][k] - T37*NN_dS_DE_cal[i][j][k] / 1000;
-				cout << "  \t" << check[i][j][k];
+				std::cout << "  \t" << check[i][j][k];
 			}
-			cout << endl;
+			std::cout << std::endl;
 		}
-		cout << endl;
+		std::cout << std::endl;
 	}
 	return 0;
 }

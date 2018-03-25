@@ -1,4 +1,10 @@
-#include"stdafx.h"
+#include "GraduateProject_PatchesAndPresets.h"
+
+#include <iostream>
+#include <fstream>
+
+#include "globals.h"
+#include "GraduateProject_PositionAndOrientation.h"
 
 atom_in_unitcell& atom_in_unitcell::set(int nx, int ny, int nz, int nsd, int nornt0, int nornt1){
 	px.set(nx, ny, nz);
@@ -44,20 +50,20 @@ int DNAmol::displayPatch()const{
 	int i, j;
 	for (i = 0; i < 4; i++){
 		for (j = 0; j < 8; j++){
-			cout.put(nt[patch[i][j]]);
+			std::cout.put(nt[patch[i][j]]);
 		}
 	}
-	cout << endl;
+	std::cout << std::endl;
 	return 0;
 }
-int DNAmol::displayPatch(ofstream &out)const{
+int DNAmol::displayPatch(std::ofstream &out)const{
 	int i, j;
 	for (i = 0; i < 4; i++){
 		for (j = 0; j < 8; j++){
 			out.put(nt[patch[i][j]]);
 		}
 	}
-	out << endl;
+	out << std::endl;
 	return 0;
 }
 int stage[_Nx][_Ny][_Nz]; // To store DNAmol serial. -1 if not occupied. Using periodic boundary conditions.
@@ -71,7 +77,7 @@ short ntSerial(char which_nt){
 	case'C':return 1;
 	case'G':return 2;
 	case'T':return 3;
-	default:cout << "Wrong nucleotide!" << endl; return -1;
+    default:std::cout << "Wrong nucleotide!" << std::endl; return -1;
 	}
 }
 short ntSerialPair[4] = { 3, 2, 1, 0 };
@@ -119,7 +125,7 @@ int molPreset(){
 		}
 	}
 	if (N != _N){
-		cout << "The number of molecules is incorrect." << endl;
+		std::cout << "The number of molecules is incorrect." << std::endl;
 	}
 
 	return 0;
@@ -139,7 +145,7 @@ int correctbonding(int n0serial, int n01x, int n01y, int n01z){
 		mol[n0serial].correctbond[n0ps] = n1serial;
 		mol[n1serial].correctbond[n1ps] = n0serial;
 		// patch assign
-		static uniform_int_distribution<> patchDis(0, 3);
+		static std::uniform_int_distribution<> patchDis(0, 3);
 		for (int i = 0; i < 8; i++){
 			temp_ntSerial = patchDis(gen);
 			mol[n0serial].patch[n0ps][i] = temp_ntSerial;
@@ -165,7 +171,7 @@ int nucleotidePreset(){
 			}
 		}
 	}
-	ofstream out("F:\\DNAPatches.txt");
+	std::ofstream out("F:\\DNAPatches.txt");
 	for (m = 0; m < N; m++){
 		mol[m].displayPatch(out);
 	}
